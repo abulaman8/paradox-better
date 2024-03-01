@@ -1,0 +1,11 @@
+{
+    "dev": {
+        "aws_region": "ap-south-1",
+        "django_settings": "paradox.settings",
+        "profile_name": "default",
+        "project_name": "local-paradox",
+        "runtime": "python3.10",
+        "slim_handler": true,
+        "s3_bucket": "zappa-mphdm462q"
+    }
+}

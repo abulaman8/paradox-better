@@ -1,0 +1,39 @@
+{
+    "user_bills": {
+        "view": true,
+        "edit": false,
+        "create": true
+    },
+    "user_account": {
+        "view": true
+    },
+    "user_budget": {
+        "view": true
+    },
+    "department_bills": {
+        "view": true
+    },
+    "department_budget": {
+        "view": true,
+        "allocate": true,
+        "deallocate": true
+    },
+    "department_account": {
+        "view": false
+    },
+    "all_budget": {
+        "allocate": true,
+        "deallocate": true
+    },
+    "all_bills": {
+        "view": true,
+        "first_approve": true,
+        "final_approve": true,
+        "mass_approve": true,
+        "first_reject": true,
+        "final_reject": true
+    },
+    "all_account": {
+        "view": true
+    }
+}

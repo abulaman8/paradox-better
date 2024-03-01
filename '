@@ -1,0 +1,696 @@
+from django.contrib.auth.models import Permission
+from django.shortcuts import render
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.response import Response
+from rest_framework import status
+from utils.decorators import has_perms, user_in_group
+from core.models import ApprovalStatus, Department, Event, Role
+from .models import Requirement, Resource, ResourceCategory, UnitOfMeasure
+from .serializers import RequirementSerializer, ResourceCategorySerializer, UnitOfMeasureSerializer, ResourceSerializer
+
+
+@api_view(['GET'])
+def get_all_units_of_measure(request):
+    units_of_measure = UnitOfMeasure.objects.all()
+    serialized = UnitOfMeasureSerializer(units_of_measure, many=True)
+    return Response(
+        serialized.data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+def get_all_resources(request):
+    resources = Resource.objects.all()
+    serialized = ResourceSerializer(resources, many=True)
+    return Response(
+
+        serialized.data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+def get_all_resource_categories(request):
+    resource_categories = ResourceCategory.objects.all()
+    serialized = ResourceCategorySerializer(resource_categories, many=True)
+    return Response(
+        serialized.data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_requirements_by_category(request, category_id, event_id=0, id=0):
+    try:
+        category = ResourceCategory.objects.get(id=category_id)
+        resources = Resource.objects.filter(category=category).all()
+        if event_id:
+            try:
+                event = Event.objects.get(id=event_id)
+                requirements = Requirement.objects.filter(
+                    resource__in=resources, event=event).all()
+                serialized = RequirementSerializer(requirements, many=True)
+                return Response(
+                    serialized.data,
+                    status=status.HTTP_200_OK
+                )
+            except Event.DoesNotExist:
+                return Response(
+                    {"message": "Event not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        elif id:
+            try:
+                department = Department.objects.get(id=id)
+                events = Event.objects.filter(department=department).all()
+                dept_requirements = Requirement.objects.filter(
+                    resource__in=resources, department=department).all()
+                event_requirements = Requirement.objects.filter(
+                    resource__in=resources, event__in=events).all()
+                requirements = dept_requirements.union(event_requirements)
+                serialized = RequirementSerializer(requirements, many=True)
+                return Response(
+                    serialized.data,
+                    status=status.HTTP_200_OK
+                )
+            except Department.DoesNotExist:
+                return Response(
+                    {"message": "Department not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        requirements = Requirement.objects.filter(resource__in=resources).all()
+        serialized = RequirementSerializer(requirements, many=True)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except ResourceCategory.DoesNotExist:
+        return Response(
+            {"message": "Category not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['POST'])
+@has_perms(['add_requirement'])
+def create_requirement(request, event_id, id, *args, **kwargs):
+    data = request.data
+    resource = data.get("resource")
+    quantity = data.get("quantity")
+    description = data.get("description")
+    unit_of_measure = data.get("unit_of_measure")
+    category = data.get("category")
+    author = request.user
+    if event_id:
+        try:
+            event = Event.objects.get(id=event_id)
+            department = event.department
+        except Event.DoesNotExist:
+            return Response(
+                {"message": "Event not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    else:
+
+        try:
+            department = Department.objects.get(id=id)
+            event = None
+
+        except Department.DoesNotExist:
+            return Response(
+                {"message": "Department not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    category_object, _ = ResourceCategory.objects.get_or_create(
+        name=category.lower())
+    unit_of_measure_object, _ = UnitOfMeasure.objects.get_or_create(
+        name=unit_of_measure.lower())
+    pending = ApprovalStatus.objects.get(name="pending")
+    resource_object, created = Resource.objects.get_or_create(
+        name=resource.lower(), unit_of_measure=unit_of_measure_object)
+    if created:
+        resource_object.category = category_object
+        resource_object.save()
+    requirement = Requirement.objects.create(
+        resource=resource_object,
+        quantity=quantity,
+        description=description,
+        author=author,
+        approval_status=pending,
+        department=department,
+        event=event
+    )
+    serializer = RequirementSerializer(requirement)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_all_requirements(request, event_id=0, id=0):
+    if event_id:
+        try:
+            event = Event.objects.get(id=event_id)
+            requirements = Requirement.objects.filter(event=event).all()
+            serialized = RequirementSerializer(requirements, many=True)
+            return Response(
+                serialized.data,
+                status=status.HTTP_200_OK
+            )
+
+        except Event.DoesNotExist:
+            return Response({"message": "Event not found"})
+    elif id:
+        try:
+            department = Department.objects.get(id=id)
+            events = Event.objects.filter(department=department).all()
+            dept_requirements = Requirement.objects.filter(
+                department=department).all()
+            event_requirements = Requirement.objects.filter(
+                event__in=events).all()
+            requirements = dept_requirements.union(event_requirements)
+            serialized = RequirementSerializer(requirements, many=True)
+            return Response(
+                serialized.data,
+                status=status.HTTP_200_OK
+            )
+        except Department.DoesNotExist:
+            return Response(
+                {"message": "Department not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    requirements = Requirement.objects.all()
+    serialized = RequirementSerializer(requirements, many=True)
+    return Response(
+        serialized.data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_department_requirements(request, id):
+    try:
+        department = Department.objects.get(id=id)
+        requirements = Requirement.objects.filter(department=department).all()
+        serialized = RequirementSerializer(requirements, many=True)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Department.DoesNotExist:
+        return Response(
+            {"message": "Department not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_event_requirements(request, event_id):
+    try:
+        event = Event.objects.get(id=event_id)
+        requirements = Requirement.objects.filter(event=event).all()
+        serialized = RequirementSerializer(requirements, many=True)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Event.DoesNotExist:
+        return Response(
+            {"message": "Event not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@authentication_classes([OAuth2Authentication])
+def get_my_requirements(request):
+    requirements = Requirement.objects.filter(author=request.user)
+    serialized = RequirementSerializer(requirements, many=True)
+    return Response(
+        serialized.data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_requirement(request, req_id, event_id=0, id=0):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        dept = requirement.department
+        event = requirement.event
+        if (event and event.id != event_id) or (dept and dept.id != id):
+            return Response(
+                {"message": "Requirement not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_dept_requirement(request, id, req_id):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_requirement_by_status(request, approval_status, event_id=0, id=0):
+    try:
+        approval_status = ApprovalStatus.objects.get(
+            name=approval_status.lower())
+        if event_id:
+            try:
+                event = Event.objects.get(id=event_id)
+                requirements = Requirement.objects.filter(
+                    approval_status=approval_status, event=event).all()
+                serialized = RequirementSerializer(requirements, many=True)
+                return Response(
+                    serialized.data,
+                    status=status.HTTP_200_OK
+                )
+            except Event.DoesNotExist:
+                return Response(
+                    {"message": "Event not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        elif id:
+            try:
+                department = Department.objects.get(id=id)
+                events = Event.objects.filter(department=department).all()
+                dept_requirements = Requirement.objects.filter(
+                    approval_status=approval_status, department=department).all()
+                event_requirements = Requirement.objects.filter(
+                    approval_status=approval_status, event__in=events).all()
+                requirements = dept_requirements.union(event_requirements)
+                serialized = RequirementSerializer(requirements, many=True)
+                return Response(
+                    serialized.data,
+                    status=status.HTTP_200_OK
+                )
+            except Department.DoesNotExist:
+                return Response(
+                    {"message": "Department not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        requirements = Requirement.objects.filter(
+            approval_status=approval_status).all()
+        serialized = RequirementSerializer(requirements, many=True)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except ApprovalStatus.DoesNotExist:
+        return Response(
+            {"message": "Status not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_requirement_by_department_and_status(request, id, approval_status):
+    try:
+        department = Department.objects.get(id=id)
+        approval_status = ApprovalStatus.objects.get(
+            name=approval_status.lower())
+        requirements = Requirement.objects.filter(
+            department=department, approval_status=approval_status).all()
+        serialized = RequirementSerializer(requirements, many=True)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Department.DoesNotExist:
+        return Response(
+            {"message": "Department not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ApprovalStatus.DoesNotExist:
+        return Response(
+            {"message": "Status not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['GET'])
+@has_perms(['view_requirement'])
+def get_requirement_by_event_and_status(request, event_id, approval_status):
+    try:
+        event = Event.objects.get(id=event_id)
+        approval_status = ApprovalStatus.objects.get(
+            name=approval_status.lower())
+        requirements = Requirement.objects.filter(
+            event=event, approval_status=approval_status).all()
+        serialized = RequirementSerializer(requirements, many=True)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+
+    except Event.DoesNotExist:
+        return Response(
+            {"message": "Event does not exist"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ApprovalStatus.DoesNotExist:
+        return Response(
+            {"message": "Status not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['DELETE'])
+@authentication_classes([OAuth2Authentication])
+def delete_my_requirement(request, req_id):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        if requirement.author == request.user:
+            requirement.delete()
+            return Response(
+                {"message": "Requirement deleted"},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {"message": "You are not authorized to delete this requirement"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['DELETE'])
+@has_perms(['delete_requirement'])
+def delete_dept_requirement(request, id, req_id):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        requirement.delete()
+        return Response(
+            {"message": "Requirement deleted"},
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['DELETE'])
+@has_perms(['delete_requirement'])
+def delete_event_requirement(request, event_id, req_id):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        requirement.delete()
+        return Response(
+            {"message": "Requirement deleted"},
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['DELETE'])
+@has_perms(['delete_requirement'])
+def delete_requirement(request, req_id, event_id=0, id=0):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        dept = requirement.department
+        event = requirement.event
+        if (event and event.id != event_id) or (dept and dept.id != id):
+            return Response(
+                {"message": "Requirement not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        requirement.delete()
+        return Response(
+            {"message": "Requirement deleted"},
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@authentication_classes([OAuth2Authentication])
+def update_my_requirement(request, req_id):
+    data = request.data
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        if requirement.author != request.user:
+            return Response(
+                {"message": "You are not authorized to update this requirement"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        new_unit_of_measure = UnitOfMeasure.objects.get_or_create(
+            name=data.get("unit_of_measure").lower())
+        new_resource = Resource.objects.get_or_create(name=data.get(
+            "resource").lower(), unit_of_measure=new_unit_of_measure)
+        requirement.resource = new_resource
+        requirement.quantity = data.get("quantity", requirement.quantity)
+        requirement.description = data.get(
+            "description", requirement.description)
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@has_perms(['change_requirement'])
+def update_requirement(request, req_id, id=0, event_id=0):
+    data = request.data
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        pending = ApprovalStatus.objects.get(name="pending")
+        dept = requirement.department
+        event = requirement.event
+        if (event and event.id != event_id) or (dept and dept.id != id):
+            return Response(
+                {"message": "Requirement not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        new_unit_of_measure = UnitOfMeasure.objects.get_or_create(
+            name=data.get("unit_of_measure").lower())[0]
+        new_resource = Resource.objects.get_or_create(name=data.get(
+            "resource").lower(), unit_of_measure=new_unit_of_measure)[0]
+        requirement.resource = new_resource
+        requirement.quantity = data.get("quantity", requirement.quantity)
+        requirement.description = data.get(
+            "description", requirement.description)
+        requirement.approval_status = pending
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@has_perms(['change_requirement'])
+def update_dept_requirement(request, id, req_id):
+    data = request.data
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        new_unit_of_measure = UnitOfMeasure.objects.get_or_create(
+            name=data.get("unit_of_measure").lower())
+        new_resource = Resource.objects.get_or_create(name=data.get(
+            "resource").lower(), unit_of_measure=new_unit_of_measure)
+        requirement.resource = new_resource
+        requirement.quantity = data.get("quantity", requirement.quantity)
+        requirement.description = data.get(
+            "description", requirement.description)
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@has_perms(['change_requirement'])
+def update_event_requirement(request, event_id, req_id):
+    data = request.data
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        new_unit_of_measure = UnitOfMeasure.objects.get_or_create(
+            name=data.get("unit_of_measure").lower())
+        new_resource = Resource.objects.get_or_create(name=data.get(
+            "resource").lower(), unit_of_measure=new_unit_of_measure)
+        requirement.resource = new_resource
+        requirement.quantity = data.get("quantity", requirement.quantity)
+        requirement.description = data.get(
+            "description", requirement.description)
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@has_perms(['dept_core_manage_requirement'])
+def dept_core_manage_requirement(request, id, req_id, action):
+    data = request.data
+    message = data.get("message")
+    if action == "declined" and not message:
+        return Response(
+            {"message": "Please provide a message for declining the requirement"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        requirement.approval_status = ApprovalStatus.objects.get(
+            name=f"dept_core_{action}")
+        requirement.message = message
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    except ApprovalStatus.DoesNotExist:
+        return Response(
+            {"message": "Invalid action, please use either 'approved' or 'declined'"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@has_perms(['fr_super_coordinator_manage_requirement'])
+def fr_super_coord_manage_requirement(request, req_id, action):
+    data = request.data
+    message = data.get("message")
+    source = data.get("source")
+    if action == "approved" and not source not in ["self_arranged", "fr_arranged"]:
+        return Response(
+            {"message": "Please provide a valid source for the requirement, either 'self_arranged' or 'fr_arranged'"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if action == "declined" and not message:
+        return Response(
+            {"message": "Please provide a message for declining the requirement"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        requirement.approval_status = ApprovalStatus.objects.get(
+            name=f"fr_super_coordinator_{action}")
+        requirement.message = message
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ApprovalStatus.DoesNotExist:
+        return Response(
+            {"message": "Invalid action, please use either 'approved' or 'declined'"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+@api_view(['PUT'])
+@has_perms(['fr_core_manage_requirement'])
+def fr_core_manage_requirement(request, req_id, action):
+    data = request.data
+    message = data.get("message")
+    if action == "declined" and not message:
+        return Response(
+            {"message": "Please provide a message for declining the requirement"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        requirement.approval_status = ApprovalStatus.objects.get(
+            name=f"fr_core_{action}")
+        requirement.message = message
+        requirement.save()
+        serialized = RequirementSerializer(requirement)
+        return Response(
+            serialized.data,
+            status=status.HTTP_200_OK
+        )
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except ApprovalStatus.DoesNotExist:
+        return Response(
+            {"message": "Invalid action, please use either 'approved' or 'declined'"},
+            status=status.HTTP_404_NOT_FOUND
+        )
