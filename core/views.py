@@ -5,9 +5,9 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Department, Role, ApprovalStatus
+from .models import Department, Role, ApprovalStatus, Blacklist
 from core.serializers import DepartmentDetailSerializer, DepartmentSerializer, PermissionSerializer, RoleSerializer, UserSerializer, ApprovalStatusSerializer
-from utils.decorators import has_perms
+from utils.decorators import has_perms, group_required
 
 
 @api_view(['GET'])
@@ -18,7 +18,7 @@ def get_all_approval_statuses(request):
 
 
 @api_view(['POST'])
-@has_perms([])
+@group_required('secretary')
 def create_group(request):
     data = request.data
     name = data.get('name')
@@ -29,6 +29,34 @@ def create_group(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'message': 'Group created'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@group_required(['secretary'])
+def add_blacklist(request):
+    data = request.data
+    email = data.get('email')
+    Blacklist.objects.create(email=email)
+    return Response({'message': 'Blacklisted'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@group_required(['secretary'])
+def get_blacklist(request):
+    blacklist = Blacklist.objects.all()
+    serialized = [{'id': b.id, 'email': b.email} for b in blacklist]
+    return Response(serialized, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@group_required(['secretary'])
+def remove_blacklist(request, id):
+    try:
+        blacklist = Blacklist.objects.get(id=id)
+        blacklist.delete()
+    except Blacklist.DoesNotExist:
+        return Response({'error': 'Blacklist not found'}, status=status.HTTP_404_NOT_FOUND)
+    return Response({'message': 'Blacklist removed'}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -235,6 +263,7 @@ def create_dept(request):
 
 
 @api_view(['PUT'])
+@group_required('secretary')
 def edit_dept(request, id):
     data = request.data
     name = data.get('name')
@@ -304,6 +333,7 @@ def add_members(request, id):
 
 
 @api_view(['DELETE'])
+@group_required('secretary')
 def delete_dept(request, id):
     try:
         dept = Department.objects.get(id=id)

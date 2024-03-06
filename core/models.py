@@ -6,6 +6,14 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 
+class Blacklist(models.Model):
+    id = models.AutoField(primary_key=True)
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return self.email
+
+
 class Student(models.Model):
     gender_choices = [
         ('Male', 'Male'),
@@ -13,8 +21,7 @@ class Student(models.Model):
         ('Other', 'Other'),
     ]
     id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='student')
+    email = models.EmailField(null=True, blank=True)
     whatsapp = models.CharField(max_length=15, null=True, blank=True)
     country = models.CharField(max_length=128, null=True, blank=True)
     state = models.CharField(max_length=128, null=True, blank=True)
@@ -24,7 +31,8 @@ class Student(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return self.user.first_name + ' ' + self.user.last_name
+        user = User.objects.get(email=self.email)
+        return user.first_name + ' ' + user.last_name
 
 
 class Account(models.Model):
@@ -137,7 +145,7 @@ class ApprovalStatus(models.Model):
 @receiver(post_save, sender=User)
 def create_student(sender, instance, created, **kwargs):
     if created:
-        Student.objects.create(user=instance)
+        Student.objects.get_or_create(email=instance.email)
 
 
 @receiver(post_save, sender=Department)

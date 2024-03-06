@@ -12,6 +12,22 @@ from finance.models import Bill
 from .fns import get_user_permissions
 
 
+def group_required(group_names):
+    def decorator(view_func):
+        @wraps(view_func)
+        @authentication_classes([OAuth2Authentication])
+        def wrapper(request, *args, **kwargs):
+            for group_name in group_names:
+                if request.user.groups.filter(name=group_name).exists():
+                    return view_func(request, *args, **kwargs)
+            return Response(
+                {'message': 'User does not have permission'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return wrapper
+    return decorator
+
+
 def has_perms(perms: list):
     def decorator(view_func):
         @wraps(view_func)

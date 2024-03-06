@@ -1,8 +1,10 @@
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q, QuerySet
 from django.contrib.contenttypes.models import ContentType
+from django.template import Context, Template
 from core.models import Department, Role, Event, SubDepartment
 from finance.models import Bill, Voucher, VoucherType
+from .templates import voucher_template, stact, sign, paradox_new_logo
 
 
 def get_user_permissions(user) -> dict[str, dict[str, QuerySet[Permission]]]:
@@ -62,8 +64,37 @@ def get_user_permissions(user) -> dict[str, dict[str, QuerySet[Permission]]]:
     return user_permissions
 
 
-def generate_voucher(id: int):
-    bill = Bill.objects.get(id=id)
+def generate_voucher(bill_id):
+    bill = Bill.objects.get(id=bill_id)
+    bill_type = bill.bill_type
+    voucher_type = VoucherType.objects.get(name=bill_type)
+    img_data = "data:image/png;base64,"
+
+    template = Template(voucher_template)
+    context = Context({
+        'voucher_number': f'VN-{bill_id}',
+        'bill_number': bill.bill_number,
+        'date': bill.bill_date.strftime('%d-%m-%Y'),
+        'vendor': bill.vendor.name,
+        'dept': 'IT',
+        'vendor_address': bill.vendor.address,
+        'gst_number': bill.vendor.gst_number,
+        'type': voucher_type.name,
+        'total': bill.amount,
+        'description': bill.description,
+        'stact': f'{img_data}{stact}',
+        'sign': f'{img_data}{sign}',
+        'logo': f'{img_data}{paradox_new_logo}',
+    })
+    # voucher = template.render(context)
+    # pdf_file = HTML(string=voucher).write_pdf()
+    voucher = Voucher.objects.create(
+        bill=bill,
+        voucher_type=voucher_type,
+    )
+    # voucher.file.save(f'voucher-{bill_id}.pdf',
+    #                   ContentFile(pdf_file), save=True)
+    return True
 
 
 def get_fin_permissions(obj, user_perms):

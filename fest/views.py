@@ -38,7 +38,6 @@ fest_reg_template = '''
 </html>
 '''
 
-
 fest_update_template = '''
 <html lang="en">
 <head>
@@ -65,7 +64,8 @@ fest_update_template = '''
 def check_fest_registration(request):
     user = request.user
     try:
-        student = Student.objects.get(user=user)
+        email = user.email
+        student = Student.objects.get(email=email)
         fest_registration = FestRegistrstion.objects.filter(
             student=student).exists()
         if fest_registration:
@@ -86,6 +86,8 @@ def check_fest_registration(request):
 @api_view(['POST'])
 @authentication_classes([OAuth2Authentication])
 def fest_registration(request):
+    user = request.user
+    email = user.email
     data = request.data
     arrival_date = datetime.fromisoformat(data.get('arrival_date')).date()
     departure_date = datetime.fromisoformat(data.get('departure_date')).date()
@@ -97,7 +99,7 @@ def fest_registration(request):
     gender = data.get('gender')
     dob = datetime.fromisoformat(data.get('dob')).date()
     try:
-        student = Student.objects.get(user=request.user)
+        student = Student.objects.get(email=email)
         student.whatsapp = whatsapp
         student.city = city
         student.state = state
@@ -137,11 +139,11 @@ def fest_registration(request):
         headers = {'Reply-To': "support@iitmparadox.org"}
         template = Template(fest_reg_template)
         context = Context({
-            'student_name': student.user.last_name if student.user.first_name[0] == '2' else student.user.first_name + ' ' + student.user.last_name,
+            'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
         })
         subject = "Get Ready for Paradox'24 - Exciting Updates Await!"
         from_email = settings.EMAIL_HOST_USER
-        to = student.user.email
+        to = student.email
         rendered = template.render(context)
         email = EmailMultiAlternatives(
             subject, rendered, from_email, [to], headers=headers)
@@ -164,6 +166,8 @@ def fest_registration(request):
 @authentication_classes([OAuth2Authentication])
 def accomodation_registration(request):
     data = request.data
+    user = request.user
+    email = user.email
     arrival_date = datetime.fromisoformat(data.get('arrival_date')).date()
     departure_date = datetime.fromisoformat(data.get('departure_date')).date()
     jain_food = data.get('jain_food')

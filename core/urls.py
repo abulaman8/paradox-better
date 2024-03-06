@@ -28,6 +28,10 @@ urlpatterns = [
     path('roles/<str:role_name>/', views.get_role_members, name='get_role_members'),
     path('roles/department/<int:id>/',
          views.get_my_roles_in_dept, name='get_my_roles_by_dept'),
+    path('blacklist/add/', views.add_blacklist, name='add_blacklist'),
+    path('blacklist/all/', views.get_blacklist, name='get_blacklist'),
+    path('blacklist/<int:id>/delete/',
+         views.remove_blacklist, name='delete_blacklist'),
 
 
 ]

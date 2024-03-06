@@ -34,9 +34,9 @@ class BillSerializer(ModelSerializer):
 
     class Meta:
         model = Bill
-        fields = ['id', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'description',
+        fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'description',
                   'approval_status', 'bill_type', 'vendor', 'date_created', 'message', 'department', 'sub_department', 'event']
-        read_only_fields = ['id', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'description',
+        read_only_fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'description',
                             'approval_status', 'bill_type', 'vendor', 'date_created', 'message', 'department', 'sub_department', 'event']
 
     def get_bill_date(self, obj):
@@ -77,9 +77,9 @@ class DebitTransactionSerializer(ModelSerializer):
 
     class Meta:
         model = DebitTransaction
-        fields = ['id', 'amount', 'txn_type', 'date_created',
+        fields = ['id', 'amount', 'txn_type', 'description', 'date_created',
                   'department', 'sub_department', 'event']
-        read_only_fields = ['id', 'amount', 'txn_type', 'date_created',
+        read_only_fields = ['id', 'amount', 'txn_type', 'description', 'date_created',
                             'department', 'sub_department', 'event']
 
     def get_department(self, obj):
@@ -109,9 +109,9 @@ class CreditTransactionSerializer(ModelSerializer):
 
     class Meta:
         model = CreditTransaction
-        fields = ['id', 'amount', 'txn_type', 'bill', 'date_created',
+        fields = ['id', 'amount', 'txn_type', 'description', 'bill', 'date_created',
                   'department', 'sub_department', 'event']
-        read_only_fields = ['id', 'bill', 'txn_type', 'amount',
+        read_only_fields = ['id', 'bill', 'txn_type', 'description', 'amount',
                             'date_created', 'department', 'sub_department', 'event']
 
     def get_bill(self, obj):
