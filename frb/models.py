@@ -70,6 +70,8 @@ class ReqAction(models.Model):
     requirement = models.ForeignKey(
         Requirement, on_delete=models.CASCADE, related_name='actions', null=True, blank=True)
     message = models.TextField(null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     approval_status = models.ForeignKey(

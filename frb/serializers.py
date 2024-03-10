@@ -26,6 +26,7 @@ class ResourceSerializer(ModelSerializer):
 
 class ReqActionSerializer(ModelSerializer):
     approval_status = ApprovalStatusSerializer()
+    user = SimpleUserSerializer()
 
     class Meta:
         model = ReqAction
@@ -38,11 +39,13 @@ class RequirementSerializer(ModelSerializer):
     author = SimpleUserSerializer()
     department = DepartmentSerializer()
     sub_department = SubDepartmentSerializer()
-    # actions = SerializerMethodField()
+    all_messages = SerializerMethodField()
 
     class Meta:
         model = Requirement
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['id', 'resource', 'author', 'department', 'sub_department', 'event', 'quantity',
+                  'description', 'approval_status', 'arrangement_source', 'message', 'created_at', 'updated_at', 'all_messages']
 
-    # def get_actions(self, obj):
-    #     return []
+    def get_all_messages(self, obj):
+        return ReqActionSerializer(obj.actions.all(), many=True).data

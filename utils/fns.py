@@ -98,6 +98,7 @@ def generate_voucher(bill_id):
 
 
 def get_fin_permissions(obj, user_perms):
+    view_vouchers = Permission.objects.filter(codename='view_voucher')
     view_bills = Permission.objects.filter(codename='view_bill')
     edit_bills = Permission.objects.filter(
         codename='change_bill')
@@ -124,6 +125,9 @@ def get_fin_permissions(obj, user_perms):
         'view': True,
         'edit': True,
     }
+    r['voucher'] = {
+        'view': False,
+    }
     r['department_bills'] = {}
     r['all_bills'] = {}
     r['all_budget'] = {}
@@ -148,7 +152,9 @@ def get_fin_permissions(obj, user_perms):
     sub_departments = user_perms['sub_departments']
     events = user_perms['events']
     for group in groups:
-        print(groups[group])
+        # print(groups[group])
+        if view_vouchers.first() in groups[group]:
+            r['voucher']['view'] = True
         if view_bills.first() in groups[group]:
             r['all_bills']['view'] = True
         if first_level_bill_approve.first() in groups[group]:

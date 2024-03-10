@@ -35,6 +35,22 @@ class Student(models.Model):
         return user.first_name + ' ' + user.last_name
 
 
+class QrCode(models.Model):
+    id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=256, unique=True)
+    student = models.OneToOneField(
+        Student, on_delete=models.CASCADE, related_name='qr_code')
+    image = models.ImageField(upload_to='qr_codes', null=True, blank=True)
+
+
+class OTP(models.Model):
+    id = models.AutoField(primary_key=True)
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+
 class Account(models.Model):
     id = models.AutoField(primary_key=True)
     is_master = models.BooleanField(default=False)

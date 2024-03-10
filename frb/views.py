@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from utils.decorators import has_requirement_perms
 from core.models import ApprovalStatus, Department, Event, Role
-from .models import Requirement, Resource, ResourceCategory, UnitOfMeasure
+from .models import Requirement, Resource, ResourceCategory, UnitOfMeasure, ReqAction
 from .serializers import RequirementSerializer, ResourceCategorySerializer, UnitOfMeasureSerializer, ResourceSerializer
 import csv
 
@@ -452,6 +452,13 @@ def dept_core_approve_requirement(request, req_id):
         requirement = Requirement.objects.get(id=req_id)
         requirement.approval_status = ApprovalStatus.objects.get(
             name=f"first_level_approved")
+        req_action = ReqAction.objects.create(
+            requirement=requirement,
+            user=request.user,
+            message=message,
+            approval_status=ApprovalStatus.objects.get(
+                name="first_level_approved")
+        )
         requirement.message = message
         requirement.save()
         serialized = RequirementSerializer(requirement)
@@ -481,6 +488,13 @@ def dept_core_decline_requirement(request, req_id):
         requirement.approval_status = ApprovalStatus.objects.get(
             name="first_level_rejected")
         requirement.message = message
+        req_action = ReqAction.objects.create(
+            requirement=requirement,
+            user=request.user,
+            message=message,
+            approval_status=ApprovalStatus.objects.get(
+                name="first_level_rejected")
+        )
         requirement.save()
         serialized = RequirementSerializer(requirement)
         return Response(
@@ -512,6 +526,14 @@ def fr_super_coord_approve_requirement(request, req_id):
             name="second_level_approved")
         requirement.message = message
         requirement.arrangement_source = source
+        req_action = ReqAction.objects.create(
+            requirement=requirement,
+            user=request.user,
+            message=message,
+            approval_status=ApprovalStatus.objects.get(
+                name="second_level_approved")
+
+        )
         requirement.save()
         serialized = RequirementSerializer(requirement)
         return Response(
@@ -540,6 +562,13 @@ def fr_super_coord_decline_requirement(request, req_id):
         requirement.approval_status = ApprovalStatus.objects.get(
             name="second_level_rejected")
         requirement.message = message
+        req_action = ReqAction.objects.create(
+            requirement=requirement,
+            user=request.user,
+            message=message,
+            approval_status=ApprovalStatus.objects.get(
+                name="second_level_rejected")
+        )
         requirement.save()
         serialized = RequirementSerializer(requirement)
         return Response(
@@ -570,6 +599,13 @@ def fr_core_approve_requirement(request, req_id):
             name="final_level_approved")
         requirement.message = message
         requirement.arrangement_source = source
+        req_action = ReqAction.objects.create(
+            requirement=requirement,
+            user=request.user,
+            message=message,
+            approval_status=ApprovalStatus.objects.get(
+                name="final_level_approved")
+        )
         requirement.save()
         serialized = RequirementSerializer(requirement)
         return Response(
@@ -603,6 +639,13 @@ def fr_core_decline_requirement(request, req_id):
         requirement.approval_status = ApprovalStatus.objects.get(
             name="final_level_rejected")
         requirement.message = message
+        req_action = ReqAction.objects.create(
+            requirement=requirement,
+            user=request.user,
+            message=message,
+            approval_status=ApprovalStatus.objects.get(
+                name="final_level_rejected")
+        )
         requirement.save()
         serialized = RequirementSerializer(requirement)
         return Response(
