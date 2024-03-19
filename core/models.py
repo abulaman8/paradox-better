@@ -75,32 +75,6 @@ class Department(models.Model):
         return self.name
 
 
-class EventData(models.Model):
-    id = models.AutoField(primary_key=True)
-    header_image = models.ImageField(
-        upload_to='event_header_images', null=True, blank=True)
-    description = models.TextField()
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    is_approved = models.BooleanField(default=False)
-    registration_start_date = models.DateTimeField(null=True, blank=True)
-    registration_end_date = models.DateTimeField(null=True, blank=True)
-    fee = models.IntegerField(default=0)
-    date = models.DateTimeField(null=True, blank=True)
-    location = models.CharField(max_length=360, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    max_participants = models.IntegerField(null=True, blank=True)
-    is_team_event = models.BooleanField(default=False)
-    meet_link = models.URLField(blank=True, null=True)
-    yt_link = models.URLField(blank=True, null=True)
-    ig_link = models.URLField(blank=True, null=True)
-    fb_link = models.URLField(blank=True, null=True)
-    twitter_link = models.URLField(blank=True, null=True)
-    misc_links = models.URLField(blank=True, null=True)
-    website_links = models.URLField(blank=True, null=True)
-    open = models.BooleanField(default=True)
-
-
 class Event(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=128)
@@ -113,8 +87,21 @@ class Event(models.Model):
     account = models.OneToOneField(
         Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='event')
     permissions = models.ManyToManyField(Permission, blank=True)
-    data = models.OneToOneField(
-        EventData, on_delete=models.CASCADE, null=True, blank=True)
+    is_approved = models.BooleanField(default=False)
+    open = models.BooleanField(default=True)
+    max_participants = models.IntegerField(null=True, blank=True)
+    is_team_event = models.BooleanField(default=False)
+    max_team_size = models.IntegerField(null=True, blank=True)
+    min_team_size = models.IntegerField(null=True, blank=True)
+    header_image = models.ImageField(
+        upload_to='event_header_images', null=True, blank=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    registration_start_date = models.DateTimeField(null=True, blank=True)
+    registration_end_date = models.DateTimeField(null=True, blank=True)
+    fee = models.IntegerField(default=0)
+    location = models.CharField(max_length=360, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -148,6 +135,60 @@ class Role(models.Model):
 
     def __str__(self):
         return f'{self.name} - {str(self.content_object)}'
+
+
+class Link(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    url = models.URLField()
+
+    def __str__(self):
+        return self.name + "-" + str(self.content_object)
+
+
+class Sponsor(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
+    logo = models.ImageField(upload_to='sponsors')
+    url = models.URLField()
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.name + " - " + self.title + " - " + str(self.content_object)
+
+
+class GalleryImage(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    image = models.ImageField(upload_to='gallery')
+
+    def __str__(self):
+        return self.name + " - " + str(self.content_object)
+
+
+class FAQ(models.Model):
+    id = models.AutoField(primary_key=True)
+    question = models.CharField(max_length=100)
+    answer = models.TextField()
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return str(self.content_object) + " - " + self.question
 
 
 class ApprovalStatus(models.Model):
@@ -184,7 +225,20 @@ def create_department_account(sender, instance, created, **kwargs):
             Department), object_id=instance.id)
         core_role.users.add(instance.core)
         core_req_perm_codes = [
-            "first_level_req_approval", "first_level_req_rejection", "change_role", "view_role", "manage_member"]
+            "first_level_req_approval",
+            "first_level_req_rejection",
+            "change_role",
+            "view_role",
+            "manage_member",
+            "view_account",
+            "add_event",
+            "change_event",
+            "delete_event",
+            "add_round",
+            "change_round",
+            "delete_round",
+            "approve_event",
+        ]
         core_req_perms = Permission.objects.filter(
             codename__in=core_req_perm_codes).all()
         core_role.permissions.add(*core_req_perms)

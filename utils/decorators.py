@@ -42,9 +42,16 @@ def has_perms(perms: list):
                     {'message': 'User is not authenticated'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
+            if request.method == 'GET':
+                data = request.GET
+                print(f"data: {data}")
+            else:
+                data = request.data
 
-            event_id = kwargs.get('event_id')
-            department_id = kwargs.get('dept_id')
+            department_id = data.get('dept_id')
+            event_id = data.get('event_id')
+            # event_id = kwargs.get('event_id')
+            # department_id = kwargs.get('dept_id')
             # print(f"department_id: {department_id}")
             # print(f"event_id: {event_id}")
             if event_id:
@@ -86,6 +93,7 @@ def has_perms(perms: list):
 
                 elif department:
                     for perm in permissions:
+                        # print(user_permissions['departments'][department.id])
                         if perm not in user_permissions['departments'][department.id]:
                             return Response(
                                 {'message': 'User does not have permission'},

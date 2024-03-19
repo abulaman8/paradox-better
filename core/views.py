@@ -100,7 +100,9 @@ def get_all_depts(request):
 
 @api_view(['GET'])
 @has_perms(['view_department'])
-def get_dept(request, id):
+def get_dept(request):
+    data = request.GET
+    id = data.get('dept_id')
     try:
         dept = Department.objects.get(id=id)
     except Department.DoesNotExist:
@@ -245,13 +247,12 @@ def create_dept(request):
         return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     with transaction.atomic():
         try:
-            core_group = Group.objects.get(name='core')
 
-            core_object.groups.add(core_group)
             dept = Department.objects.create(
                 name=name, core=core_object, event_based=event_based)
             dept.save()
-            dept_default_perm_codes = ["view_requirement", "add_requirement"]
+            dept_default_perm_codes = [
+                "view_requirement", "add_requirement", "view_bill", "add_bill", "view_department"]
             dept_default_perms = Permission.objects.filter(
                 codename__in=dept_default_perm_codes).all()
             dept.permissions.set(dept_default_perms)
@@ -264,8 +265,9 @@ def create_dept(request):
 
 @api_view(['PUT'])
 @group_required('secretary')
-def edit_dept(request, id):
+def edit_dept(request):
     data = request.data
+    id = data.get('id')
     name = data.get('name')
     core = data.get('core')
     members = data.get('members')
@@ -274,7 +276,6 @@ def edit_dept(request, id):
         with transaction.atomic():
             dept = Department.objects.get(id=id)
             core_group = Group.objects.get(name='core')
-            deputy_core_group = Group.objects.get(name='deputy_core')
             dept.core.groups.remove(core_group)
             core_object = User.objects.get(email=core)
             core_object.groups.add(core_group)
@@ -293,8 +294,9 @@ def edit_dept(request, id):
 
 @api_view(['DELETE'])
 @has_perms(['change_department'])
-def delete_members(request, id):
+def delete_members(request):
     data = request.data
+    id = data.get('dept_id')
     members = data.get('members')
     member_objects = []
     for member in members:
@@ -312,8 +314,10 @@ def delete_members(request, id):
 
 @api_view(['PUT'])
 @has_perms(['change_department'])
-def add_members(request, id):
+def add_members(request):
     data = request.data
+    id = data.get('dept_id')
+    print(id)
     members = data.get('members')
     member_objects = []
     for member in members:
@@ -327,14 +331,16 @@ def add_members(request, id):
         dept.members.add(*member_objects)
         return Response({'message': 'Members added'}, status=status.HTTP_200_OK)
     except Department.DoesNotExist:
-        return Response({'error': 'Department not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Department does not exist.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['DELETE'])
 @group_required('secretary')
-def delete_dept(request, id):
+def delete_dept(request):
+    data = request.data
+    id = data.get('dept_id')
     try:
         dept = Department.objects.get(id=id)
         dept.delete()
@@ -345,8 +351,9 @@ def delete_dept(request, id):
 
 @api_view(['POST'])
 @has_perms(['add_role'])
-def assign_dept_user_roles(request, id):
+def assign_dept_user_roles(request):
     data = request.data
+    id = data.get('dept_id')
     name = data.get('name')
     members = data.get('members')
     try:
@@ -354,7 +361,8 @@ def assign_dept_user_roles(request, id):
     except Department.DoesNotExist:
         return Response({'error': 'Department not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    role = Role.objects.filter(name=name, department=dept)
+    role = Role.objects.filter(name=name, content_type=ContentType.objects.get_for_model(
+        Department), object_id=dept.id)
     if not role.exists():
         return Response({'error': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
 

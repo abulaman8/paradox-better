@@ -21,15 +21,18 @@ class UnitOfMeasure(models.Model):
 
 class Resource(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128)
     category = models.ForeignKey(
         ResourceCategory, null=True, blank=True, on_delete=models.SET_NULL, related_name="resources")
     unit_of_measure = models.ForeignKey(
         UnitOfMeasure, on_delete=models.SET_NULL, null=True, blank=True, related_name="resources")
     description = models.TextField(null=True, blank=True)
 
+    class Meta:  # type: ignore
+        unique_together = ('name', 'unit_of_measure')
+
     def __str__(self):
-        return self.name
+        return self.name + " - " + self.unit_of_measure.name
 
 
 class Requirement(models.Model):

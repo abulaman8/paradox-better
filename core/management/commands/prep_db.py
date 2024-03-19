@@ -102,6 +102,11 @@ class Command(BaseCommand):
             name='Can deassign budget to events',
             content_type=event_type
         )
+        Permission.objects.get_or_create(
+            codename='approve_event',
+            name='Can approve events',
+            content_type=event_type
+        )
 
         Permission.objects.get_or_create(
             codename='manage_member',

@@ -192,7 +192,8 @@ def get_all_requirements(request):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-    requirements = Requirement.objects.all()
+    requirements = Requirement.objects.prefetch_related(
+        'approval_status').exclude(approval_status__name="pending").exclude(approval_status__name="first_level_rejected").all()
     serialized = RequirementSerializer(requirements, many=True)
     return Response(
         serialized.data,

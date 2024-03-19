@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'frb',
     'finance',
     'fest',
+    'emp',
     'utils',
 ]
 
@@ -89,11 +90,24 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'paradox.urls'
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = [
+CORS_ALLOW_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost:8080',
     'https://iitmparadox.org',
+    'https://www.iitmparadox.org',
+    'https://central.iitmparadox.org',
+    'https://www.central.iitmparadox.org',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://localhost:8080',
+    'https://iitmparadox.org',
+    'https://www.iitmparadox.org',
+    'https://central.iitmparadox.org',
+    'https://www.central.iitmparadox.org',
 ]
 
 
@@ -122,40 +136,56 @@ WSGI_APPLICATION = 'paradox.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # setup for postgres
+# INFO: Testing db
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres.joowioorsrxzhehsotiu',
+#         'PASSWORD': 'KA0piH3GsJM9QUfS',
+#         'HOST': 'aws-0-ap-south-1.pooler.supabase.com',
+#         'PORT': '5432'
+#     }
+# }
+
+
+# INFO: local dev db
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres.nxesihlgvprwhsxavues',
+#         'PASSWORD': 'tkT8UzoAibcySiak',
+#         'HOST': 'aws-0-ap-south-1.pooler.supabase.com',
+#         'PORT': '5432'
+#     }
+# }
+
+
+# INFO: prod db
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres.joowioorsrxzhehsotiu',
-        'PASSWORD': 'KA0piH3GsJM9QUfS',
+        'USER': 'postgres.mzaupqbvjwtwnlljhvea',
+        'PASSWORD': 'KA0piH3GsJM9QUfS.',
         'HOST': 'aws-0-ap-south-1.pooler.supabase.com',
         'PORT': '5432'
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django_cockroachdb',
-#         'NAME': 'defaultdb',
-#         'USER': 'paradox',
-#         'PASSWORD': 'V-9G0gVDirfcVAUg2Z9m-g',
-#         'HOST': 'paradox-24-3919.7s5.aws-ap-south-1.cockroachlabs.cloud',
-#         'PORT': '26257',
-#         'OPTIONS': {
-#             'sslmode': 'verify-full',
-#             'sslrootcert': 'root.crt'
-#         },
-#     },
-# }
+
 # TcNuAatJTNvxRLkYecIhHF88kLVJcY2DmMZGzSzN
 # GNQ6pAA4FAVYlvswYgPqjspbXpOse79w6wBDnk6qQmSJEkwSRXtTptNgEHuqORs4GxLwfnUfEaAKS3oMjtpCRyQI2N4E5ApkytMf7xf3AJk4tLLcpVOVZ23b3QzhHzF9
 
