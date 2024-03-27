@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,6 +11,10 @@ from .serializers import RoundSerializer
 from utils.decorators import has_perms
 from .decorators import has_event_perms
 from datetime import datetime
+
+from forms.models import Form, Block, Input, Select, Textarea, RadioGroup, Dependency, CheckboxGroup
+from forms.serializers import FormSerializer, BlockSerializer, InputSerializer, SelectSerializer, TextareaSerializer, RadioGroupSerializer, DependencySerializer, CheckboxGroupSerializer
+from forms.serializers import FormSerializer
 
 
 @api_view(['POST'])
@@ -36,6 +41,8 @@ def add_event(request):
     try:
         user = User.objects.get(email=head_email)
         dept = Department.objects.get(id=dept_id)
+        if not dept.event_based:
+            return Response({'message': 'Department is not event based'}, status=status.HTTP_400_BAD_REQUEST)
         event = Event.objects.create(
             name=event_name,
             head=user,
@@ -62,8 +69,9 @@ def add_event(request):
 
 @api_view(['PUT'])
 @has_event_perms(['change_event'])
-def edit_event(request, event_id):
+def edit_event(request):
     data = request.data
+    event_id = data.get('event_id')
     event = Event.objects.get(id=event_id)
     event_name = data.get('event_name')
     head_email = data.get('head_email')
@@ -201,6 +209,7 @@ def add_round(request):
             location=location,
             description=description
         )
+        event.is_approved = False
         serializer = RoundSerializer(round)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     except Event.DoesNotExist:
@@ -219,6 +228,7 @@ def edit_round(request):
     location = data.get('location')
     description = data.get('description')
     try:
+        event = Event.objects.get(id=event_id)
         round = Round.objects.get(id=round_id)
         round.name = round_name
         round.start_time = start_time
@@ -226,10 +236,13 @@ def edit_round(request):
         round.location = location
         round.description = description
         round.save()
+        event.is_approved = False
         serializer = RoundSerializer(round)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Round.DoesNotExist:
         return Response({'message': 'Round with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['DELETE'])
@@ -239,8 +252,73 @@ def delete_round(request):
     event_id = data.get('event_id')
     round_id = data.get('round_id')
     try:
+        event = Event.objects.get(id=event_id)
         round = Round.objects.get(id=round_id)
         round.delete()
+        event.is_approved = False
         return Response({'message': 'Round deleted successfully'}, status=status.HTTP_200_OK)
     except Round.DoesNotExist:
         return Response({'message': 'Round with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@has_perms(['change_event'])
+def create_event_form(request):
+    data = request.data
+    user = request.user
+    form_name = data.get('name')
+    form_description = data.get('description')
+    bg_image = data.get('bg_image')
+    event_id = data.get('event_id')
+    try:
+        event = Event.objects.get(id=event_id)
+        with transaction.atomic():
+            form = Form.objects.create(
+                name=form_name,
+                description=form_description,
+                bg_image=bg_image,
+                user=user,
+                published=False
+            )
+            event.form = form
+            event.save()
+            serializer = FormSerializer(form)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@has_perms(['change_event'])
+def add_block(request):
+    data = request.data
+    user = request.user
+    event_id = data.get('event_id')
+    try:
+        event = Event.objects.get(id=event_id)
+        form = event.form
+        if not form:
+            return Response({'message': 'Form not found for the event, create a form to continue'}, status=status.HTTP_400_BAD_REQUEST)
+        block_title = data.get('title')
+        block_position = data.get('position')
+        block = Block.objects.create(
+            form=form,
+            title=block_title,
+            position=block_position
+        )
+        serializer = FormSerializer(form)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@has_perms(['change_event'])
+def add_input(request):
+    data = request.data
+    user = request.user
+    event_id = data.get('event_id')
+    block_id = data.get('block_id')

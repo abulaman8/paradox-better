@@ -6,9 +6,13 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
 from utils.decorators import has_requirement_perms
+from utils.templates import req_approved_template, req_rejected_template
 from core.models import ApprovalStatus, Department, Event, Role
 from .models import Requirement, Resource, ResourceCategory, UnitOfMeasure, ReqAction
 from .serializers import RequirementSerializer, ResourceCategorySerializer, UnitOfMeasureSerializer, ResourceSerializer
+from django.conf import settings
+from django.template import Template, Context
+from django.core.mail import EmailMultiAlternatives
 import csv
 
 
@@ -462,6 +466,31 @@ def dept_core_approve_requirement(request, req_id):
         )
         requirement.message = message
         requirement.save()
+        try:
+            template = Template(req_approved_template)
+            context = Context({
+                'role': 'Department Core',
+                'name': requirement.author.first_name,
+                'requirement': requirement.resource.name
+            })
+            subject = "Requirement Approved by Department Core"
+            content = template.render(context)
+            from_email = f"Finance and Operations <{settings.EMAIL_HOST_USER}>"
+            to = [requirement.author.email]
+            cc = [requirement.department.core.email]
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=content,
+                from_email=from_email,
+                to=to,
+                cc=cc
+            )
+            email.attach_alternative(content, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         serialized = RequirementSerializer(requirement)
         return Response(
             serialized.data,
@@ -497,6 +526,32 @@ def dept_core_decline_requirement(request, req_id):
                 name="first_level_rejected")
         )
         requirement.save()
+        try:
+            template = Template(req_rejected_template)
+            context = Context({
+                'role': 'Department Core',
+                'name': requirement.author.first_name,
+                'requirement': requirement.resource.name,
+                'reason': message
+            })
+            subject = "Requirement Rejected by Department Core"
+            content = template.render(context)
+            from_email = f"Finance and Operations <{settings.EMAIL_HOST_USER}>"
+            to = [requirement.author.email]
+            cc = [requirement.department.core.email]
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=content,
+                from_email=from_email,
+                to=to,
+                cc=cc
+            )
+            email.attach_alternative(content, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         serialized = RequirementSerializer(requirement)
         return Response(
             serialized.data,
@@ -536,6 +591,31 @@ def fr_super_coord_approve_requirement(request, req_id):
 
         )
         requirement.save()
+        try:
+            template = Template(req_approved_template)
+            context = Context({
+                'role': 'FR Super Coordinator',
+                'name': requirement.author.first_name,
+                'requirement': requirement.resource.name
+            })
+            subject = "Requirement Approved by FR Super Coordinator"
+            content = template.render(context)
+            from_email = f"Finance and Operations <{settings.EMAIL_HOST_USER}>"
+            to = [requirement.author.email]
+            cc = [requirement.department.core.email]
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=content,
+                from_email=from_email,
+                to=to,
+                cc=cc
+            )
+            email.attach_alternative(content, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         serialized = RequirementSerializer(requirement)
         return Response(
             serialized.data,
@@ -571,6 +651,32 @@ def fr_super_coord_decline_requirement(request, req_id):
                 name="second_level_rejected")
         )
         requirement.save()
+        try:
+            template = Template(req_rejected_template)
+            context = Context({
+                'role': 'FR Super Coordinator',
+                'name': requirement.author.first_name,
+                'requirement': requirement.resource.name,
+                'reason': message
+            })
+            subject = "Requirement Rejected by FR Super Coordinator"
+            content = template.render(context)
+            from_email = f"Finance and Operations <{settings.EMAIL_HOST_USER}>"
+            to = [requirement.author.email]
+            cc = [requirement.department.core.email]
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=content,
+                from_email=from_email,
+                to=to,
+                cc=cc
+            )
+            email.attach_alternative(content, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         serialized = RequirementSerializer(requirement)
         return Response(
             serialized.data,
@@ -608,6 +714,31 @@ def fr_core_approve_requirement(request, req_id):
                 name="final_level_approved")
         )
         requirement.save()
+        try:
+            template = Template(req_approved_template)
+            context = Context({
+                'role': 'FR Core',
+                'name': requirement.author.first_name,
+                'requirement': requirement.resource.name
+            })
+            subject = "Requirement Approved by FR Core"
+            content = template.render(context)
+            from_email = f"Finance and Operations <{settings.EMAIL_HOST_USER}>"
+            to = [requirement.author.email]
+            cc = [requirement.department.core.email]
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=content,
+                from_email=from_email,
+                to=to,
+                cc=cc
+            )
+            email.attach_alternative(content, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         serialized = RequirementSerializer(requirement)
         return Response(
             serialized.data,
@@ -648,6 +779,32 @@ def fr_core_decline_requirement(request, req_id):
                 name="final_level_rejected")
         )
         requirement.save()
+        try:
+            template = Template(req_rejected_template)
+            context = Context({
+                'role': 'FR Core',
+                'name': requirement.author.first_name,
+                'requirement': requirement.resource.name,
+                'reason': message
+            })
+            subject = "Requirement Rejected by FR Core"
+            content = template.render(context)
+            from_email = f"Finance and Operations <{settings.EMAIL_HOST_USER}>"
+            to = [requirement.author.email]
+            cc = [requirement.department.core.email]
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=content,
+                from_email=from_email,
+                to=to,
+                cc=cc
+            )
+            email.attach_alternative(content, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         serialized = RequirementSerializer(requirement)
         return Response(
             serialized.data,

@@ -7,56 +7,9 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
-
+from utils.templates import fest_reg_template, fest_update_template
 from core.models import Student
 from .models import FestRegistrstion, AccomodationRegistration
-
-
-fest_reg_template = '''
-<!DOCTYPE html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paradox'24 Updates</title>
-</head>
-<body>
-    <div>
-        <p>Dear {{ student_name }},</p>
-        <p>Congratulations for successfully registering for Paradox'24! Get set for an exhilarating experience on our campus from May 30th to June 2nd.</p>
-        <p>And guess what?  We've got an electrifying surprise event in store for everyone, and details will be unveiled shortly. Stay tuned to our social media channels for the latest updates and sneak peeks!</p>
-        <p>Please note that this email serves as confirmation of your festival registration. As for accommodation, fret not, registration form will soon be rolled out on our website. But bear in mind, accommodation slots are limited and will be allocated on a first-come, first-served basis.</p>
-        <p>The check-in desk for accommodation opens its doors on May 29th and remains accessible until June 2nd. Operating hours are from 8:00 AM to 8:00 PM daily. Plan your travel arrangements accordingly to ensure a seamless check-in process.</p>
-        <p>Should you have any inquiries or doubts, please don't hesitate to reach out to us at <a href="mailto:support@iitmparadox.org">support@iitmparadox.org</a>.</p>
-
-        <p>Warm Regards,</p>
-        <p>Team Paradox</p>
-    </div>
-</body>
-</html>
-'''
-
-fest_update_template = '''
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paradox'24 Registration Update</title>
-</head>
-<body>
-    <div>
-        <p>Dear {{ student_name }},</p>
-        <p>We've received your update/edit for Paradox'24 registration. Your changes have been successfully captured. Thank you for keeping us informed!</p>
-        <p>If you have any further questions or concerns, feel free to reach out to us at <a href="mailto:support@iitmparadox.org">support@iitmparadox.org</a>.</p>
-        <p>Best Regards,</p>
-        <p>Team Paradox</p>
-    </div>
-</body>
-</html>
-'''
 
 
 @api_view(['GET'])
@@ -168,15 +121,18 @@ def accomodation_registration(request):
     data = request.data
     user = request.user
     email = user.email
+    files = request.FILES
+    pwd = True if data.get('pwd') == 'true' else False
+    pwd_cert = files.get('pwd_cert')
     arrival_date = datetime.fromisoformat(data.get('arrival_date')).date()
     departure_date = datetime.fromisoformat(data.get('departure_date')).date()
-    jain_food = data.get('jain_food')
+    jain_food = True if data.get('jain_food') == 'true' else False
     medical_issues = data.get('medical_issues')
     emergency_contact = data.get('emergency_contact')
     emergency_contact_name = data.get('emergency_contact_name')
     emergency_contact_relation = data.get('emergency_contact_relation')
     try:
-        student = Student.objects.get(user=request.user)
+        student = Student.objects.get(email=email)
         fest_registration = FestRegistrstion.objects.filter(
             student=student).exists()
         if not fest_registration:
@@ -191,6 +147,8 @@ def accomodation_registration(request):
             accomodation_registration.emergency_contact = emergency_contact
             accomodation_registration.emergency_contact_name = emergency_contact_name
             accomodation_registration.emergency_contact_relation = emergency_contact_relation
+            accomodation_registration.pwd = pwd
+            accomodation_registration.pwd_certificate = pwd_cert
             accomodation_registration.save()
             return Response({'message': 'Accomodation registration updated'}, status=status.HTTP_200_OK)
 
@@ -202,7 +160,9 @@ def accomodation_registration(request):
             medical_issues=medical_issues,
             emergency_contact=emergency_contact,
             emergency_contact_name=emergency_contact_name,
-            emergency_contact_relation=emergency_contact_relation
+            emergency_contact_relation=emergency_contact_relation,
+            pwd=pwd,
+            pwd_certificate=pwd_cert
         )
         return Response({'message': 'Accomodation registration successful'}, status=status.HTTP_201_CREATED)
 
@@ -213,4 +173,4 @@ def accomodation_registration(request):
     except DatabaseError:
         return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     except Exception as e:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response({'message': e}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

@@ -25,6 +25,9 @@ class AccomodationRegistration(models.Model):
     emergency_contact_name = models.CharField(max_length=256)
     emergency_contact_relation = models.CharField(max_length=256)
     medical_issues = models.TextField(null=True, blank=True)
+    pwd = models.BooleanField(default=False)
+    pwd_certificate = models.FileField(
+        upload_to='pwd_certificates/', null=True, blank=True)
 
     def __str__(self):
         return self.student.email

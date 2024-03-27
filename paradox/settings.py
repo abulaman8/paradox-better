@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'finance',
     'fest',
     'emp',
+    'forms',
     'utils',
 ]
 
@@ -56,7 +57,7 @@ REST_FRAMEWORK = {
 # SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "207905362507-gv72ti9pr7gsc417r748kn4inamtd5ap.apps.googleusercontent.com"
 # SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "449424611527-h1qjsuq4b726156viv6q3ulkr0aq52de.apps.googleusercontent.com"
+OCIAL_AUTH_GOOGLE_OAUTH2_KEY = "449424611527-h1qjsuq4b726156viv6q3ulkr0aq52de.apps.googleusercontent.com"
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
 
 # VAR = "http://localhost:8000"
@@ -254,5 +255,5 @@ EMAIL_USE_TLS = True
 # EMAIL_HOST_PASSWORD = 'qcfflqimdnyofera'
 EMAIL_HOST = 'smtp.office365.com'
 EMAIL_HOST_USER = 'noreply@mail.iitmparadox.org'
-EMAIL_HOST_PASSWORD = 'Jog17172'
+EMAIL_HOST_PASSWORD = 'Fuc80283'
 EMAIL_PORT = 587

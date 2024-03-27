@@ -8,4 +8,5 @@ urlpatterns = [
     path('fest/', include('fest.urls')),
     path('base/', include('core.urls')),
     path('finance/', include('finance.urls')),
+    path('emp/', include('emp.urls')),
 ]

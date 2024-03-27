@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import User
 
 
@@ -11,6 +13,10 @@ class Form(models.Model):
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    published = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 
 class Block(models.Model):
@@ -20,6 +26,12 @@ class Block(models.Model):
     position = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:  # type: ignore
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.form) + ' - ' + self.title
 
 
 class Input(models.Model):
@@ -55,6 +67,35 @@ class Input(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:  # type: ignore
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.block) + ' - ' + self.label
+
+
+class Textarea(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=128)
+    block = models.ForeignKey(Block, on_delete=models.CASCADE)
+    label = models.CharField(max_length=128)
+    position = models.IntegerField()
+    required = models.BooleanField(default=False)
+    placeholder = models.CharField(max_length=128, null=True, blank=True)
+    max_length = models.IntegerField(null=True, blank=True)
+    min_length = models.IntegerField(null=True, blank=True)
+    rows = models.IntegerField(null=True, blank=True)
+    cols = models.IntegerField(null=True, blank=True)
+    value = models.CharField(max_length=128, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:  # type: ignore
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.block) + ' - ' + self.label
+
 
 class RadioGroup(models.Model):
     id = models.AutoField(primary_key=True)
@@ -67,3 +108,63 @@ class RadioGroup(models.Model):
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:  # type: ignore
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.block) + ' - ' + self.label
+
+
+class CheckboxGroup(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=128)
+    block = models.ForeignKey(Block, on_delete=models.CASCADE)
+    label = models.CharField(max_length=128)
+    inputs = models.JSONField()
+    value = models.CharField(max_length=128, null=True, blank=True)
+    position = models.IntegerField()
+    required = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:  # type: ignore
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.block) + ' - ' + self.label
+
+
+class Select(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=128)
+    block = models.ForeignKey(Block, on_delete=models.CASCADE)
+    label = models.CharField(max_length=128)
+    inputs = models.JSONField()
+    value = models.CharField(max_length=128, null=True, blank=True)
+    position = models.IntegerField()
+    required = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:  # type: ignore
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.block) + ' - ' + self.label
+
+
+class Dependency(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=128)
+    block = models.ForeignKey(Block, on_delete=models.CASCADE)
+    value = models.CharField(max_length=128)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.block) + ' - ' + self.value

@@ -25,10 +25,10 @@ def has_event_perms(perms: list):
                 )
             if request.method == 'GET':
                 data = request.GET
-                print(f"data: {data}")
+                # print(f"data: {data}")
             else:
                 data = request.data
-                print(f"data: {data}")
+                # print(f"data: {data}")
             event_id = data.get('event_id')
             perm_objs = Permission.objects.filter(codename__in=perms).all()
             user_permissions = get_user_permissions(user)
@@ -37,7 +37,7 @@ def has_event_perms(perms: list):
             groups = user.groups.all()
             all_group_permissions = [
                 perm for group in groups for perm in user_permissions['groups'][group.name]]
-            print(f"all_group_permissions: {all_group_permissions}")
+            # print(f"all_group_permissions: {all_group_permissions}")
 
             for perm in perm_objs:
                 if perm in all_group_permissions:
@@ -46,15 +46,15 @@ def has_event_perms(perms: list):
                 found = False
             else:
                 found = True
-            print(f"found: {found}")
+            # print(f"found: {found}")
 
             if secretary_group not in user.groups.all() and not found:
                 if event_id:
                     try:
                         event = Event.objects.get(id=event_id)
                         department = event.department
-                        print(
-                            f"user dept perms: {user_permissions['departments']}")
+                        # print(
+                        #     f"user dept perms: {user_permissions['departments']}")
                         for perm in perm_objs:
                             dperms = user_permissions['departments'].get(
                                 department.id, [])

@@ -130,10 +130,10 @@ def has_budget_perms(perms: list):
                 )
             if request.method == 'GET':
                 data = request.GET
-                print(f"data: {data}")
+                # print(f"data: {data}")
             else:
                 data = request.data
-                print(f"data: {data}")
+                # print(f"data: {data}")
             dept_id = data.get('dept_id')
             perm_objs = Permission.objects.filter(codename__in=perms).all()
             user_permissions = get_user_permissions(user)
@@ -142,7 +142,7 @@ def has_budget_perms(perms: list):
             groups = user.groups.all()
             all_group_permissions = [
                 perm for group in groups for perm in user_permissions['groups'][group.name]]
-            print(f"all_group_permissions: {all_group_permissions}")
+            # print(f"all_group_permissions: {all_group_permissions}")
 
             for perm in perm_objs:
                 if perm in all_group_permissions:
@@ -151,14 +151,14 @@ def has_budget_perms(perms: list):
                 found = False
             else:
                 found = True
-            print(f"found: {found}")
+            # print(f"found: {found}")
 
             if secretary_group not in user.groups.all() and not found:
                 if dept_id:
                     try:
                         department = Department.objects.get(id=dept_id)
-                        print(
-                            f"user dept perms: {user_permissions['departments']}")
+                        # print(
+                        #     f"user dept perms: {user_permissions['departments']}")
                         for perm in perm_objs:
                             dperms = user_permissions['departments'].get(
                                 department.id, [])
@@ -190,24 +190,24 @@ def has_bill_perms(perms: list):
                 )
             if request.method == 'GET':
                 data = request.GET
-                print(f"data: {data}")
+                # print(f"data: {data}")
             else:
                 data = request.data
-                print(f"data: {data}")
+                # print(f"data: {data}")
             bill_id = data.get('bill_id')
             dept_id = data.get('dept_id')
             event_id = data.get('event_id')
             sub_dept_id = data.get('sub_dept_id')
             perm_objs = Permission.objects.filter(codename__in=perms).all()
             user_permissions = get_user_permissions(user)
-            print(f"user_permissions: {user_permissions}")
+            # print(f"user_permissions: {user_permissions}")
             secretary_group = Group.objects.get(name='secretary')
             group_permissions = QuerySet[Permission]
             found = 0
             groups = user.groups.all()
             all_group_permissions = [
                 perm for group in groups for perm in user_permissions['groups'][group.name]]
-            print(f"all_group_permissions: {all_group_permissions}")
+            # print(f"all_group_permissions: {all_group_permissions}")
 
             for perm in perm_objs:
                 if perm in all_group_permissions:
@@ -216,7 +216,7 @@ def has_bill_perms(perms: list):
                 found = False
             else:
                 found = True
-            print(f"found: {found}")
+            # print(f"found: {found}")
 
             if secretary_group not in user.groups.all() and not found:
                 if bill_id:
@@ -272,8 +272,8 @@ def has_bill_perms(perms: list):
                 elif dept_id:
                     try:
                         department = Department.objects.get(id=dept_id)
-                        print(
-                            f"user dept perms: {user_permissions['departments']}")
+                        # print(
+                        #     f"user dept perms: {user_permissions['departments']}")
                         for perm in perm_objs:
                             dperms = user_permissions['departments'].get(
                                 department.id, [])
@@ -326,10 +326,10 @@ def has_requirement_perms(perms: list):
                 )
             if request.method == 'GET':
                 data = request.GET
-                print(f"data: {data}")
+                # print(f"data: {data}")
             else:
                 data = request.data
-                print(f"data: {data}")
+                # print(f"data: {data}")
             req_id = data.get('req_id')
             dept_id = data.get('dept_id')
             event_id = data.get('event_id')
@@ -342,7 +342,7 @@ def has_requirement_perms(perms: list):
             groups = user.groups.all()
             all_group_permissions = [
                 perm for group in groups for perm in user_permissions['groups'][group.name]]
-            print(f"all_group_permissions: {all_group_permissions}")
+            # print(f"all_group_permissions: {all_group_permissions}")
 
             for perm in perm_objs:
                 if perm in all_group_permissions:
@@ -351,7 +351,7 @@ def has_requirement_perms(perms: list):
                 found = False
             else:
                 found = True
-            print(f"found: {found}")
+            # print(f"found: {found}")
 
             if secretary_group not in user.groups.all() and not found:
                 if req_id:
@@ -404,8 +404,8 @@ def has_requirement_perms(perms: list):
                 elif dept_id:
                     try:
                         department = Department.objects.get(id=dept_id)
-                        print(
-                            f"user dept perms: {user_permissions['departments']}")
+                        # print(
+                        #     f"user dept perms: {user_permissions['departments']}")
                         for perm in perm_objs:
                             dperms = user_permissions['departments'].get(
                                 department.id, [])

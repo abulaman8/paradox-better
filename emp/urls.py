@@ -4,8 +4,11 @@ from . import views
 urlpatterns = [
     path('events/all/', views.view_all_events, name='view_all_events'),
     path('events/', views.view_event, name='view_event'),
+    path('events/dept/', views.view_dept_events, name='view_dept_events'),
     path('events/create/', views.add_event, name='add_event'),
     path('events/edit/', views.edit_event, name='edit_event'),
+    path('events/approve/', views.approve_event, name='approve_event'),
+    path('events/reject/', views.disapprove_event, name='reject_event'),
     path('events/delete/', views.delete_event, name='delete_event'),
     path('rounds/add/', views.add_round, name='add_round'),
     path('rounds/edit/', views.edit_round, name='edit_round'),
