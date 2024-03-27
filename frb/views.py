@@ -2,10 +2,10 @@ from django.contrib.auth.models import Permission, Group, User
 from django.http import HttpResponse
 from django.shortcuts import render
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from utils.decorators import has_requirement_perms
+from utils.decorators import has_requirement_perms, authed
 from utils.templates import req_approved_template, req_rejected_template
 from core.models import ApprovalStatus, Department, Event, Role
 from .models import Requirement, Resource, ResourceCategory, UnitOfMeasure, ReqAction
@@ -206,7 +206,7 @@ def get_all_requirements(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def get_my_requirements(request):
     requirements = Requirement.objects.filter(author=request.user)
     serialized = RequirementSerializer(requirements, many=True)
@@ -310,7 +310,7 @@ def get_requirement_by_status(request, approval_status):
 
 
 @api_view(['DELETE'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def delete_my_requirement(request, req_id):
     try:
         requirement = Requirement.objects.get(id=req_id)
@@ -361,7 +361,7 @@ def delete_requirement(request, req_id):
 
 
 @api_view(['PUT'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def update_my_requirement(request, req_id):
     data = request.data
     try:
@@ -818,7 +818,7 @@ def fr_core_decline_requirement(request, req_id):
 
 
 @api_view(['POST'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def assign_fr_roles(request):
     fr_core = Group.objects.get(name='fr_core')
     if fr_core not in request.user.groups.all():
@@ -844,7 +844,7 @@ def assign_fr_roles(request):
 
 
 @api_view(['POST'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def remove_fr_roles(request):
     fr_core = Group.objects.get(name='fr_core')
     if fr_core not in request.user.groups.all():
@@ -870,7 +870,7 @@ def remove_fr_roles(request):
 
 
 @api_view(['POST'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def add_fr_role_perms(request):
     fr_core = Group.objects.get(name='fr_core')
     if fr_core not in request.user.groups.all():
@@ -895,7 +895,7 @@ def add_fr_role_perms(request):
 
 
 @api_view(['POST'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def remove_fr_role_perms(request):
     fr_core = Group.objects.get(name='fr_core')
     if fr_core not in request.user.groups.all():
@@ -920,7 +920,7 @@ def remove_fr_role_perms(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def get_fr_perms(request):
     core_perm = Permission.objects.filter(
         codename='fr_core_manage_requirement').first()

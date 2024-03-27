@@ -3,13 +3,13 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from core.models import Student, QrCode
-from utils.decorators import has_perms
+from utils.decorators import has_perms, authed
 from .models import Accommadation
 from .serializers import AccommodationSerializer
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def get_user_accommodation(request):
     data = request.GET
     code = data.get('code')

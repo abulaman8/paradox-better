@@ -1,21 +1,41 @@
 from django.contrib.auth.models import Group, Permission
-from django.db.models import Q, QuerySet
-from django.contrib.contenttypes.models import ContentType
-from rest_framework.decorators import authentication_classes
+from django.db.models import QuerySet
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.response import Response
 from rest_framework import status
 from functools import wraps
-from core.models import Department, Role, Event, SubDepartment
+from core.models import Department, Event, SubDepartment
 from frb.models import Requirement
 from finance.models import Bill
 from .fns import get_user_permissions
 
 
+def authed():
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped_view(request, *args, **kwargs):
+            auth = OAuth2Authentication()
+            auth_tuple = auth.authenticate(request)
+            if not auth_tuple:
+                return Response(
+                    {'message': 'User is not authenticated'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            user = auth_tuple[0]
+            if not user.is_authenticated:
+                return Response(
+                    {'message': 'User is not authenticated'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            return view_func(request, *args, **kwargs)
+        return wrapped_view
+    return decorator
+
+
 def group_required(group_names):
     def decorator(view_func):
         @wraps(view_func)
-        @authentication_classes([OAuth2Authentication])
+        @authed()
         def wrapper(request, *args, **kwargs):
             for group_name in group_names:
                 if request.user.groups.filter(name=group_name).exists():
@@ -31,7 +51,7 @@ def group_required(group_names):
 def has_perms(perms: list):
     def decorator(view_func):
         @wraps(view_func)
-        @authentication_classes([OAuth2Authentication])
+        @authed()
         def wrapped_view(request, *args, **kwargs):
             # print(f"args: {args}")
             # print(f"kwargs: {kwargs}")
@@ -120,7 +140,7 @@ def has_perms(perms: list):
 def has_budget_perms(perms: list):
     def decorator(view_func):
         @wraps(view_func)
-        @authentication_classes([OAuth2Authentication])
+        @authed()
         def wrapped_view(request, *args, **kwargs):
             user = request.user
             if not user.is_authenticated:
@@ -180,7 +200,7 @@ def has_budget_perms(perms: list):
 def has_bill_perms(perms: list):
     def decorator(view_func):
         @wraps(view_func)
-        @authentication_classes([OAuth2Authentication])
+        @authed()
         def wrapped_view(request, *args, **kwargs):
             user = request.user
             if not user.is_authenticated:
@@ -315,7 +335,7 @@ def has_bill_perms(perms: list):
 def has_requirement_perms(perms: list):
     def decorator(view_func):
         @wraps(view_func)
-        @authentication_classes([OAuth2Authentication])
+        @authed()
         def wrapped_view(request, *args, **kwargs):
 
             user = request.user

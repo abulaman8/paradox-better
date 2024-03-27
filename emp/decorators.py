@@ -9,13 +9,14 @@ from functools import wraps
 from core.models import Department, Role, Event, SubDepartment
 from frb.models import Requirement
 from finance.models import Bill
+from utils.decorators import authed
 from utils.fns import get_user_permissions
 
 
 def has_event_perms(perms: list):
     def decorator(view_func):
         @wraps(view_func)
-        @authentication_classes([OAuth2Authentication])
+        @authed()
         def wrapped_view(request, *args, **kwargs):
             user = request.user
             if not user.is_authenticated:

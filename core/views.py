@@ -2,12 +2,12 @@ from django.contrib.auth.models import Group, User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Department, Role, ApprovalStatus, Blacklist
 from core.serializers import DepartmentDetailSerializer, DepartmentSerializer, PermissionSerializer, RoleSerializer, UserSerializer, ApprovalStatusSerializer
-from utils.decorators import has_perms, group_required
+from utils.decorators import authed, has_perms, group_required
 
 
 @api_view(['GET'])
@@ -205,7 +205,8 @@ def get_all_permissions(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+# @authed()
+@authed()
 def get_profile(request):
     user = request.user
     serialized = UserSerializer(user)
@@ -213,7 +214,7 @@ def get_profile(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def get_my_roles(request):
     user = request.user
     roles = Role.objects.filter(users=user).all()
@@ -222,7 +223,7 @@ def get_my_roles(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def get_my_roles_in_dept(request, id):
     user = request.user
     try:
@@ -249,7 +250,7 @@ def create_dept(request):
         try:
 
             dept = Department.objects.create(
-                name=name, core=core_object, event_based=event_based)
+                name=name, core=core_object, event_based=True if event_based else False)
             dept.save()
             dept_default_perm_codes = [
                 "view_requirement", "add_requirement", "view_bill", "add_bill", "view_department"]

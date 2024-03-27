@@ -4,16 +4,17 @@ from django.template import Template, Context
 from django.core.mail import EmailMultiAlternatives
 from django.db.utils import OperationalError, InterfaceError, DatabaseError
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from utils.templates import fest_reg_template, fest_update_template
+from utils.decorators import authed
 from core.models import Student
 from .models import FestRegistrstion, AccomodationRegistration
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def check_fest_registration(request):
     user = request.user
     try:
@@ -37,7 +38,7 @@ def check_fest_registration(request):
 
 
 @api_view(['POST'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def fest_registration(request):
     user = request.user
     email = user.email
@@ -116,7 +117,7 @@ def fest_registration(request):
 
 
 @api_view(['POST'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def accomodation_registration(request):
     data = request.data
     user = request.user

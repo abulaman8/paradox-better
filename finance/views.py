@@ -1,11 +1,11 @@
 from django.db import transaction
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import status
 from core.models import ApprovalStatus, Department, Event
 from frb.models import Requirement
-from utils.decorators import has_bill_perms, has_budget_perms, has_perms, has_requirement_perms
+from utils.decorators import authed, has_bill_perms, has_budget_perms, has_perms, has_requirement_perms
 from utils.fns import generate_voucher
 from datetime import datetime
 import json
@@ -338,7 +338,7 @@ def get_bill(request, bill_id):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def get_my_bills(request):
     user = request.user
     bills = Bill.objects.filter(author=user).all()

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import transaction
-from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
@@ -8,7 +8,7 @@ from core.models import Student, Event, Department
 from core.serializers import EventSerializer
 from .models import Round, SomeDude
 from .serializers import RoundSerializer
-from utils.decorators import has_perms
+from utils.decorators import has_perms, authed
 from .decorators import has_event_perms
 from datetime import datetime
 
@@ -155,7 +155,7 @@ def disapprove_event(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def view_dept_events(request):
     data = request.GET
     dept_id = data.get('dept_id')
@@ -169,7 +169,7 @@ def view_dept_events(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def view_all_events(request):
     events = Event.objects.all()
     serializer = EventSerializer(events, many=True)
@@ -177,7 +177,7 @@ def view_all_events(request):
 
 
 @api_view(['GET'])
-@authentication_classes([OAuth2Authentication])
+@authed()
 def view_event(request):
     data = request.GET
     event_id = data.get('event_id')
