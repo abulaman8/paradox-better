@@ -81,7 +81,7 @@ MIDDLEWARE = [
     'paradox.coop_middleware.COOPMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'paradox.blacklist_middleware.BlacklistMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -101,15 +101,17 @@ CORS_ALLOW_ORIGINS = [
     'https://www.central.iitmparadox.org',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:8000',
-    'http://localhost:8080',
-    'https://iitmparadox.org',
-    'https://www.iitmparadox.org',
-    'https://central.iitmparadox.org',
-    'https://www.central.iitmparadox.org',
-]
+# CSRF_COOKIE_SECURE = True
+
+# CSRF_TRUSTED_ORIGINS = [
+#     'http://localhost:3000',
+#     'http://localhost:8000',
+#     'http://localhost:8080',
+#     'https://iitmparadox.org',
+#     'https://www.iitmparadox.org',
+#     'https://central.iitmparadox.org',
+#     'https://www.central.iitmparadox.org',
+# ]
 
 
 TEMPLATES = [

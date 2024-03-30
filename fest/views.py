@@ -26,15 +26,9 @@ def check_fest_registration(request):
             return Response({'registered': True}, status=status.HTTP_200_OK)
         return Response({'registered': False}, status=status.HTTP_200_OK)
 
-    except OperationalError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except InterfaceError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except DatabaseError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     except Exception as e:
         print(e)
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response({"message": e}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @api_view(['POST'])
@@ -90,30 +84,46 @@ def fest_registration(request):
             likelihood=likelihood
         )
         # Send email
-        headers = {'Reply-To': "support@iitmparadox.org"}
-        template = Template(fest_reg_template)
-        context = Context({
-            'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
-        })
-        subject = "Get Ready for Paradox'24 - Exciting Updates Await!"
-        from_email = settings.EMAIL_HOST_USER
-        to = student.email
-        rendered = template.render(context)
-        email = EmailMultiAlternatives(
-            subject, rendered, from_email, [to], headers=headers)
-        email.attach_alternative(rendered, "text/html")
-        email.send()
+        try:
+
+            headers = {'Reply-To': "support@iitmparadox.org"}
+            template = Template(fest_reg_template)
+            context = Context({
+                'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+            })
+            subject = "Get Ready for Paradox'24 - Exciting Updates Await!"
+            from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"
+            to = student.email
+            rendered = template.render(context)
+            email = EmailMultiAlternatives(
+                subject, rendered, from_email, [to], headers=headers)
+            email.attach_alternative(rendered, "text/html")
+            email.send()
+        except Exception as e:
+            print(e)
+            pass
         return Response({'message': 'Fest registration successful'}, status=status.HTTP_201_CREATED)
 
-    except OperationalError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except InterfaceError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except DatabaseError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     except Exception as e:
         print(e)
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return Response({'message': e}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@api_view(['GET'])
+@authed()
+def check_accom(request):
+    user = request.user
+    email = user.email
+    try:
+        student = Student.objects.get(email=email)
+        accomodation_registration = AccomodationRegistration.objects.filter(
+            student=student).exists()
+        if accomodation_registration:
+            return Response({'registered': True}, status=status.HTTP_200_OK)
+        return Response({'registered': False}, status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response({'message': e}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @api_view(['POST'])
@@ -124,22 +134,34 @@ def accomodation_registration(request):
     email = user.email
     files = request.FILES
     pwd = True if data.get('pwd') == 'true' else False
-    pwd_cert = files.get('pwd_cert')
+    print("pwd", pwd)
+    pwd_cert = files.get('pwd_certificate')
+    print("pwd_cert", pwd_cert)
     arrival_date = datetime.fromisoformat(data.get('arrival_date')).date()
+    print("arrival_date", arrival_date)
     departure_date = datetime.fromisoformat(data.get('departure_date')).date()
+    print("departure_date", departure_date)
     jain_food = True if data.get('jain_food') == 'true' else False
+    print("jain_food", jain_food)
     medical_issues = data.get('medical_issues')
+    print("medical_issues", medical_issues)
     emergency_contact = data.get('emergency_contact')
+    print("emergency_contact", emergency_contact)
     emergency_contact_name = data.get('emergency_contact_name')
+    print("emergency_contact_name", emergency_contact_name)
     emergency_contact_relation = data.get('emergency_contact_relation')
+    print("emergency_contact_relation", emergency_contact_relation)
     try:
         student = Student.objects.get(email=email)
+        print("student", student)
         fest_registration = FestRegistrstion.objects.filter(
             student=student).exists()
+        print("fest_registration", fest_registration)
         if not fest_registration:
             return Response({'message': 'Please register for fest first'}, status=status.HTTP_400_BAD_REQUEST)
         accomodation_registration = AccomodationRegistration.objects.filter(
             student=student).first()
+        print("accomodation_registration", accomodation_registration)
         if accomodation_registration:
             accomodation_registration.arrival_date = arrival_date
             accomodation_registration.departure_date = departure_date
@@ -152,26 +174,38 @@ def accomodation_registration(request):
             accomodation_registration.pwd_certificate = pwd_cert
             accomodation_registration.save()
             return Response({'message': 'Accomodation registration updated'}, status=status.HTTP_200_OK)
-
-        accomodation_registration = AccomodationRegistration.objects.create(
-            student=student,
-            arrival_date=arrival_date,
-            departure_date=departure_date,
-            jain_food=jain_food,
-            medical_issues=medical_issues,
-            emergency_contact=emergency_contact,
-            emergency_contact_name=emergency_contact_name,
-            emergency_contact_relation=emergency_contact_relation,
-            pwd=pwd,
-            pwd_certificate=pwd_cert
-        )
+        try:
+            accomodation_registration = AccomodationRegistration.objects.create(
+                student=student,
+                arrival_date=arrival_date,
+                departure_date=departure_date,
+                jain_food=jain_food,
+                medical_issues=medical_issues,
+                emergency_contact=emergency_contact,
+                emergency_contact_name=emergency_contact_name,
+                emergency_contact_relation=emergency_contact_relation,
+                pwd=pwd,
+                pwd_certificate=pwd_cert
+            )
+        except Exception as e:
+            print(e)
+            return Response({'message': e}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        print("accomodation_registration", accomodation_registration)
         return Response({'message': 'Accomodation registration successful'}, status=status.HTTP_201_CREATED)
 
-    except OperationalError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except InterfaceError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except DatabaseError:
-        return Response({'message': 'We are experiencing heavy traffic, please try again later'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     except Exception as e:
         return Response({'message': e}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@api_view(['GET'])
+def get_all_accom_data(request):
+    accom = AccomodationRegistration.objects.prefetch_related(
+        'student', 'student__email').all()
+    data = []
+    for a in accom:
+        data.append({
+            'student': a.student.email,
+            'pwd': a.pwd,
+            'timestamp': a.created_at.timestamp() if a.created_at else "",
+        })
+    return Response(data, status=status.HTTP_200_OK)

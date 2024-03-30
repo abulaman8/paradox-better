@@ -29,6 +29,10 @@ def get_all_units_of_measure(request):
 @api_view(['GET'])
 def get_all_resources(request):
     resources = Resource.objects.all()
+    names = [resource.name for resource in resources]
+    resources = list(
+        set([Resource.objects.filter(name=name).first() for name in names]))
+
     serialized = ResourceSerializer(resources, many=True)
     return Response(
 

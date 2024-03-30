@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.db.utils import IntegrityError
 from core.models import Student
 import json
 from datetime import datetime
@@ -39,6 +40,13 @@ class Command(BaseCommand):
                         country=student['country'],
                     )
                 )
-
-        Student.objects.bulk_create(student_objects)
+        try:
+            Student.objects.bulk_create(student_objects)
+        except IntegrityError:
+            for student in student_objects:
+                try:
+                    student.save()
+                except IntegrityError:
+                    self.stdout.write(self.style.ERROR(
+                        'Student with email %s already exists' % student.email))
         self.stdout.write(self.style.SUCCESS('Successfully loaded students'))

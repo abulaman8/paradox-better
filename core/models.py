@@ -23,7 +23,7 @@ class Student(models.Model):
         ('Other', 'Other'),
     ]
     id = models.AutoField(primary_key=True)
-    email = models.EmailField(null=True, blank=True)
+    email = models.EmailField(null=True, blank=True, unique=True)
     whatsapp = models.CharField(max_length=15, null=True, blank=True)
     country = models.CharField(max_length=128, null=True, blank=True)
     state = models.CharField(max_length=128, null=True, blank=True)
@@ -33,7 +33,10 @@ class Student(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        user = User.objects.get(email=self.email)
+        try:
+            user = User.objects.get(email=self.email)
+        except User.DoesNotExist:
+            return self.email
         return user.first_name + ' ' + user.last_name
 
 
