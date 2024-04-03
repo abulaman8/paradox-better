@@ -34,6 +34,26 @@ class Block(models.Model):
         return str(self.form) + ' - ' + self.title
 
 
+class Element(models.Model):
+    element_types = (
+        ('input', 'Input'),
+        ('textarea', 'Textarea'),
+        ('select', 'Select'),
+        ('checkbox_group', 'Checkbox Group'),
+        ('radio_group', 'Radio Group'),
+    )
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=128)
+    position = models.IntegerField()
+    block = models.ForeignKey(Block, on_delete=models.CASCADE)
+    label = models.CharField(max_length=128)
+    element_type = models.CharField(max_length=128)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+
 class Input(models.Model):
 
     INPUT_TYPES = (
@@ -43,7 +63,6 @@ class Input(models.Model):
         ('password', 'Password'),
         ('date', 'Date'),
         ('time', 'Time'),
-        ('datetime-local', 'Datetime-local'),
         ('file', 'File'),
         ('color', 'Color'),
         ('tel', 'Tel'),
@@ -51,11 +70,7 @@ class Input(models.Model):
     )
 
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128)
-    block = models.ForeignKey(Block, on_delete=models.CASCADE)
-    label = models.CharField(max_length=128)
     input_type = models.CharField(max_length=128, choices=INPUT_TYPES)
-    position = models.IntegerField()
     required = models.BooleanField(default=False)
     placeholder = models.CharField(max_length=128, null=True, blank=True)
     autocomplete = models.BooleanField(default=False)
@@ -67,19 +82,15 @@ class Input(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:  # type: ignore
-        ordering = ['position']
-
     def __str__(self):
-        return str(self.block) + ' - ' + self.label
+        content_type = ContentType.objects.get_for_model(Input)
+        element = Element.objects.filter(
+            content_type=content_type, object_id=self.id).first()
+        return str(element.block) + ' - ' + element.label if element else ''
 
 
 class Textarea(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128)
-    block = models.ForeignKey(Block, on_delete=models.CASCADE)
-    label = models.CharField(max_length=128)
-    position = models.IntegerField()
     required = models.BooleanField(default=False)
     placeholder = models.CharField(max_length=128, null=True, blank=True)
     max_length = models.IntegerField(null=True, blank=True)
@@ -90,68 +101,56 @@ class Textarea(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:  # type: ignore
-        ordering = ['position']
-
     def __str__(self):
-        return str(self.block) + ' - ' + self.label
+        content_type = ContentType.objects.get_for_model(Textarea)
+        element = Element.objects.filter(
+            content_type=content_type, object_id=self.id).first()
+        return str(element.block) + ' - ' + element.label if element else ''
 
 
 class RadioGroup(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128)
-    block = models.ForeignKey(Block, on_delete=models.CASCADE)
-    label = models.CharField(max_length=128)
     inputs = models.JSONField()
     value = models.CharField(max_length=128, null=True, blank=True)
-    position = models.IntegerField()
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:  # type: ignore
-        ordering = ['position']
-
     def __str__(self):
-        return str(self.block) + ' - ' + self.label
+        content_type = ContentType.objects.get_for_model(RadioGroup)
+        element = Element.objects.filter(
+            content_type=content_type, object_id=self.id).first()
+        return str(element.block) + ' - ' + element.label if element else ''
 
 
 class CheckboxGroup(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128)
-    block = models.ForeignKey(Block, on_delete=models.CASCADE)
-    label = models.CharField(max_length=128)
     inputs = models.JSONField()
     value = models.CharField(max_length=128, null=True, blank=True)
-    position = models.IntegerField()
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:  # type: ignore
-        ordering = ['position']
-
     def __str__(self):
-        return str(self.block) + ' - ' + self.label
+        content_type = ContentType.objects.get_for_model(CheckboxGroup)
+        element = Element.objects.filter(
+            content_type=content_type, object_id=self.id).first()
+        return str(element.block) + ' - ' + element.label if element else ''
 
 
 class Select(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128)
-    block = models.ForeignKey(Block, on_delete=models.CASCADE)
-    label = models.CharField(max_length=128)
     inputs = models.JSONField()
     value = models.CharField(max_length=128, null=True, blank=True)
-    position = models.IntegerField()
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:  # type: ignore
-        ordering = ['position']
-
     def __str__(self):
-        return str(self.block) + ' - ' + self.label
+        content_type = ContentType.objects.get_for_model(Select)
+        element = Element.objects.filter(
+            content_type=content_type, object_id=self.id).first()
+        return str(element.block) + ' - ' + element.label if element else ''
 
 
 class Dependency(models.Model):

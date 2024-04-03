@@ -1,7 +1,7 @@
 from typing import OrderedDict
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from django.contrib.contenttypes.models import ContentType
-from .models import Form, Input, Textarea, CheckboxGroup, Select, RadioGroup, Block, Dependency
+from .models import Form, Input, Textarea, CheckboxGroup, Select, RadioGroup, Block, Dependency, Element
 
 
 class InputSerializer(ModelSerializer):
@@ -32,6 +32,52 @@ class RadioGroupSerializer(ModelSerializer):
     class Meta:
         model = RadioGroup
         fields = '__all__'
+
+
+class ElementSerializer(ModelSerializer):
+    input = SerializerMethodField()
+    inputType = SerializerMethodField()
+
+    class Meta:
+        model = Element
+        fields = ['id', 'name', 'block', 'label',
+                  'position', 'input', 'inputType']
+
+    def get_input(self, obj):
+        input_type = ContentType.objects.get_for_model(Input)
+        text_area_type = ContentType.objects.get_for_model(Textarea)
+        check_box_type = ContentType.objects.get_for_model(CheckboxGroup)
+        select_type = ContentType.objects.get_for_model(CheckboxGroup)
+        radio_type = ContentType.objects.get_for_model(CheckboxGroup)
+        content_type = obj.content_type
+        if content_type == input_type:
+            return InputSerializer(obj.content_object).data
+        elif content_type == text_area_type:
+            return TextareaSerializer(obj.content_object).data
+        elif content_type == check_box_type:
+            return CheckboxGroupSerializer(obj.content_object).data
+        elif content_type == select_type:
+            return SelectSerializer(obj.content_object).data
+        elif content_type == radio_type:
+            return RadioGroupSerializer(obj.content_object).data
+
+    def get_inputType(self, obj):
+        input_type = ContentType.objects.get_for_model(Input)
+        text_area_type = ContentType.objects.get_for_model(Textarea)
+        check_box_type = ContentType.objects.get_for_model(CheckboxGroup)
+        select_type = ContentType.objects.get_for_model(CheckboxGroup)
+        radio_type = ContentType.objects.get_for_model(CheckboxGroup)
+        content_type = obj.content_type
+        if content_type == input_type:
+            return obj.input_type
+        elif content_type == text_area_type:
+            return "textarea"
+        elif content_type == check_box_type:
+            return "checkbox"
+        elif content_type == select_type:
+            return "select"
+        elif content_type == radio_type:
+            return "radio"
 
 
 class DependencySerializer(ModelSerializer):
@@ -85,12 +131,7 @@ class DependencySerializer(ModelSerializer):
 
 
 class BlockSerializer(ModelSerializer):
-    inputs = SerializerMethodField()
-    checkbox_groups = SerializerMethodField()
-    selects = SerializerMethodField()
-    radio_groups = SerializerMethodField()
-    textareas = SerializerMethodField()
-    dependencies = SerializerMethodField()
+    elements = SerializerMethodField()
 
     class Meta:
         model = Block
@@ -101,41 +142,12 @@ class BlockSerializer(ModelSerializer):
             'position',
             'created_at',
             'updated_at',
-            'inputs',
-            'textareas',
-            'checkbox_groups',
-            'selects',
-            'radio_groups',
-            'dependencies'
+            'elements'
         ]
 
-    def get_inputs(self, obj):
-        inputs = Input.objects.filter(block=obj).order_by('position').all()
-        return InputSerializer(inputs, many=True).data
-
-    def get_textareas(self, obj):
-        textareas = Textarea.objects.filter(
-            block=obj).order_by('position').all()
-        return TextareaSerializer(textareas, many=True).data
-
-    def get_checkbox_groups(self, obj):
-        checkbox_groups = CheckboxGroup.objects.filter(
-            block=obj).order_by('position').all()
-        return CheckboxGroupSerializer(checkbox_groups, many=True).data
-
-    def get_selects(self, obj):
-        selects = Select.objects.filter(block=obj).order_by('position').all()
-        return SelectSerializer(selects, many=True).data
-
-    def get_radio_groups(self, obj):
-        radio_groups = RadioGroup.objects.filter(
-            block=obj).order_by('position').all()
-        return RadioGroupSerializer(radio_groups, many=True).data
-
-    def get_dependencies(self, obj):
-        dependencies = Dependency.objects.filter(
-            block=obj).all()
-        return DependencySerializer(dependencies, many=True).data
+    def get_elements(self, obj):
+        elements = Element.objects.filter(block=obj).order_by('position').all()
+        return ElementSerializer(elements, many=True).data
 
 
 class FormSerializer(ModelSerializer):

@@ -2,9 +2,11 @@ from django.contrib.auth.models import Group, Permission
 from django.db.models import Q, QuerySet
 from django.contrib.contenttypes.models import ContentType
 from django.template import Context, Template
+from django.core.files.base import ContentFile
 from core.models import Department, Role, Event, SubDepartment
 from finance.models import Bill, Voucher, VoucherType
 from .templates import voucher_template, stact, sign, paradox_new_logo
+# from weasyprint import HTML
 
 
 def get_user_permissions(user) -> dict[str, dict[str, QuerySet[Permission]]]:
@@ -70,15 +72,15 @@ def generate_voucher(bill_id):
     voucher_type = VoucherType.objects.get(name=bill_type)
     img_data = "data:image/png;base64,"
 
-    template = Template(voucher_template)
+    # template = Template(voucher_template)
     context = Context({
         'voucher_number': f'VN-{bill_id}',
         'bill_number': bill.bill_number,
         'date': bill.bill_date.strftime('%d-%m-%Y'),
-        'vendor': bill.vendor.name,
+        'vendor': bill.vendor.name if bill.vendor else '',
         'dept': 'IT',
-        'vendor_address': bill.vendor.address,
-        'gst_number': bill.vendor.gst_number,
+        'vendor_address': bill.vendor.address if bill.vendor else '',
+        'gst_number': bill.vendor.gst_number if bill.vendor else '',
         'type': voucher_type.name,
         'total': bill.amount,
         'description': bill.description,
@@ -88,12 +90,12 @@ def generate_voucher(bill_id):
     })
     # voucher = template.render(context)
     # pdf_file = HTML(string=voucher).write_pdf()
-    voucher = Voucher.objects.create(
-        bill=bill,
-        voucher_type=voucher_type,
-    )
+    # voucher = Voucher.objects.create(
+    #     bill=bill,
+    #     voucher_type=voucher_type,
+    # )
     # voucher.file.save(f'voucher-{bill_id}.pdf',
-    #                   ContentFile(pdf_file), save=True)
+    #                   ContentFile(pdf_file), save=True)  # type: ignore
     return True
 
 

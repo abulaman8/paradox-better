@@ -329,7 +329,9 @@ def get_bill(request, bill_id):
         account = bill.account
         dept = Department.objects.filter(account=account).first()
         event = Event.objects.filter(account=account).first()
-        if (event and event_id and event.id != event_id) or (dept and id and dept.id != id):
+        print(event, id, event_id)
+        print(dept, id, event_id)
+        if (event and event_id and event.id != int(event_id)) or (dept and id and dept.id != int(id)):
             return Response({'message': 'Bill does not exist'}, status=status.HTTP_404_NOT_FOUND)
         serializer = BillSerializer(bill)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -458,7 +460,20 @@ def upload_bill(request):
             }, status=status.HTTP_404_NOT_FOUND
             )
     else:
+        vendor = data.get('vendor')
+        vendor = json.loads(vendor)
+        if not vendor:
+            return Response({
+                'message': 'Vendor details are required'
+            }, status=status.HTTP_400_BAD_REQUEST
+            )
         try:
+            if Vendor.objects.filter(gst_number=vendor["gst_number"]).exists():
+                vendor_object = Vendor.objects.get(
+                    gst_number=vendor["gst_number"])
+            else:
+                vendor_object = Vendor.objects.create(
+                    name=vendor["name"], gst_number=vendor["gst_number"], address=vendor["address"])
             new_bill = Bill.objects.create(
                 author=request.user,
                 title=title,
@@ -469,7 +484,8 @@ def upload_bill(request):
                 approval_status=pending,
                 file=file,
                 bill_number=bill_number,
-                bill_date=bill_date
+                bill_date=bill_date,
+                vendor=vendor_object
             )
             new_bill.requirements.add(*requirements)
             new_bill.save()
@@ -590,6 +606,17 @@ def final_level_rejection(request, bill_id):
 @api_view(['GET'])
 @has_requirement_perms(['view_requirement'])
 def get_all_approved_requirements(request):
+    data = request.GET
+    dept_id = data.get('dept_id')
+    if dept_id:
+        try:
+            dept = Department.objects.get(id=dept_id)
+            requirements = Requirement.objects.filter(
+                approval_status=ApprovalStatus.objects.get(name='final_level_approved')).filter(department=dept).all()
+            serialized = RequirementSerializer(requirements, many=True)
+            return Response(serialized.data, status=status.HTTP_200_OK)
+        except Department.DoesNotExist:
+            return Response({'message': 'Department does not exist'}, status=status.HTTP_404_NOT_FOUND)
     requirements = Requirement.objects.filter(
         approval_status=ApprovalStatus.objects.get(name='final_level_approved')).all()
     serialized = RequirementSerializer(requirements, many=True)
