@@ -10,6 +10,7 @@ class Round(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     location = models.CharField(max_length=100)
+    location_link = models.URLField(null=True, blank=True, max_length=2048)
     description = models.TextField()
 
     def __str__(self):

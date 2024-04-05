@@ -35,6 +35,7 @@ def add_event(request):
     fee = data.get('fee')
     description = data.get('description')
     location = data.get('location')
+    location_link = data.get('location_link')
     start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d %H:%M:%S')
     end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d %H:%M:%S')
     registration_start_date = datetime.strptime(
@@ -57,6 +58,7 @@ def add_event(request):
             fee=fee if fee else 0,
             description=description,
             location=location,
+            location_link=location_link,
             start_date=start_date,
             end_date=end_date,
             registration_start_date=registration_start_date,
@@ -85,6 +87,7 @@ def edit_event(request):
     fee = data.get('fee')
     description = data.get('description')
     location = data.get('location')
+    location_link = data.get('location_link')
     start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d %H:%M:%S')
     end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d %H:%M:%S')
     registration_start_date = datetime.strptime(
@@ -102,6 +105,7 @@ def edit_event(request):
         event.fee = fee if fee else 0
         event.description = description
         event.location = location
+        event.location_link = location_link
         event.start_date = start_date
         event.end_date = end_date
         event.registration_start_date = registration_start_date
@@ -201,6 +205,7 @@ def add_round(request):
     start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d %H:%M:%S')
     end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d %H:%M:%S')
     location = data.get('location')
+    location_link = data.get('location_link')
     description = data.get('description')
     try:
         event = Event.objects.get(id=event_id)
@@ -210,6 +215,7 @@ def add_round(request):
             start_time=start_date,
             end_time=end_date,
             location=location,
+            location_link=location_link,
             description=description
         )
         event.is_approved = False
@@ -229,6 +235,7 @@ def edit_round(request):
     start_time = datetime.strptime(data.get('start_date'), '%Y-%m-%d %H:%M:%S')
     end_time = datetime.strptime(data.get('end_date'), '%Y-%m-%d %H:%M:%S')
     location = data.get('location')
+    location_link = data.get('location_link')
     description = data.get('description')
     try:
         event = Event.objects.get(id=event_id)
@@ -237,6 +244,7 @@ def edit_round(request):
         round.start_time = start_time
         round.end_time = end_time
         round.location = location
+        round.location_link = location_link
         round.description = description
         round.save()
         event.is_approved = False

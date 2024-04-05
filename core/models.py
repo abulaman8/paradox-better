@@ -106,6 +106,7 @@ class Event(models.Model):
     registration_end_date = models.DateTimeField(null=True, blank=True)
     fee = models.IntegerField(default=0)
     location = models.CharField(max_length=360, null=True, blank=True)
+    location_link = models.URLField(null=True, blank=True, max_length=2048)
     description = models.TextField(null=True, blank=True)
     form = models.ForeignKey(
         Form, on_delete=models.SET_NULL, null=True, blank=True)
@@ -312,7 +313,8 @@ def create_event_account(sender, instance, created, **kwargs):
         head_role = Role.objects.get(
             name="head", content_type=ContentType.objects.get_for_model(Event), object_id=instance.id)
         head_role.users.add(head)
-        head_perm_codes = ["change_role", "view_role", "manage_member"]
+        head_perm_codes = ["change_role", "view_role",
+                           "manage_member", "change_event", "view_event"]
         head_perms = Permission.objects.filter(
             codename__in=head_perm_codes).all()
         head_role.permissions.add(*head_perms)
