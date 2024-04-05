@@ -69,7 +69,7 @@ class ElementSerializer(ModelSerializer):
         radio_type = ContentType.objects.get_for_model(CheckboxGroup)
         content_type = obj.content_type
         if content_type == input_type:
-            return obj.input_type
+            return obj.element_type
         elif content_type == text_area_type:
             return "textarea"
         elif content_type == check_box_type:
@@ -161,7 +161,7 @@ class FormSerializer(ModelSerializer):
             'description',
             'created_at',
             'updated_at',
-            'blocks'
+            'blocks',
             'user',
             'published',
             'bg_image'

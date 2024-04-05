@@ -13,5 +13,7 @@ urlpatterns = [
     path('rounds/add/', views.add_round, name='add_round'),
     path('rounds/edit/', views.edit_round, name='edit_round'),
     path('rounds/delete/', views.delete_round, name='delete_round'),
+    path('forms/create/', views.create_event_form, name='create_event_form'),
+    path('forms/edit/', views.edit_event_form, name='edit_event_form'),
 
 ]

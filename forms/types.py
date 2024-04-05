@@ -1,4 +1,4 @@
-from typing import List, Literal, Union
+from typing import List, Literal, Union, Dict, Any
 
 
 class DependencyType:
@@ -10,7 +10,7 @@ class DependencyType:
 
 
 class InputType:
-    def __init__(self, id: str, value: str, required: bool, placeholder: str, autocomplete: bool, max: int | None, min: int | None = None, maxLength: int | None = None, minLength: int | None = None):
+    def __init__(self, id: str, value: str, required: bool, placeholder: str, autocomplete: bool, max: int | None = None, min: int | None = None, maxLength: int | None = None, minLength: int | None = None):
         self.id = id
         self.value = value
         self.required = required
@@ -31,11 +31,10 @@ class SelectType:
 
 
 class RadioGroupType:
-    def __init__(self, id: str, value: str, required: bool, dependency: bool, inputs: List[str]):
+    def __init__(self, id: str, value: str, required: bool, inputs: List[str]):
         self.id = id
         self.value = value
         self.required = required
-        self.dependency = dependency
         self.inputs = inputs
 
 
@@ -57,6 +56,20 @@ class ElementType:
         self.inputType = inputType
         self.element = element
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any], input_type: str = "input") -> Union[InputType, SelectType, RadioGroupType, CheckboxGroupType]:
+        print(data)
+        print(f"input type: {input_type}")
+        if input_type == "select":
+            element = SelectType(**data)
+        elif input_type == "radio":
+            element = RadioGroupType(**data)
+        elif input_type == "checkbox":
+            element = CheckboxGroupType(**data)
+        else:
+            element = InputType(**data)
+        return element
+
 
 class BlockType:
     def __init__(self, id: str, position: int, title: str,  elements: List[ElementType], dependencies: List[DependencyType] | None = None):
@@ -68,13 +81,32 @@ class BlockType:
 
 
 class FormType:
-    def __init__(self, id: str, bg_img: str, name: str, desc: str, solo: bool, blocks: List[BlockType]):
+    def __init__(self, id: str, bg_img: str, name: str, desc: str, blocks: List[BlockType]):
         self.id = id
         self.bg_img = bg_img
         self.name = name
         self.desc = desc
-        self.solo = solo
         self.blocks = blocks
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "FormType":
+        blocks = [BlockType(
+            id=block_data['id'],
+            position=block_data['position'],
+            title=block_data['title'],
+            dependencies=[DependencyType(**dep)
+                          for dep in block_data.get('dependencies', [])],
+            elements=[ElementType(**elem)
+                      for elem in block_data['elements']]
+        ) for block_data in data['blocks']]
+
+        return cls(
+            id=data['id'],
+            bg_img=data['bg_img'],
+            name=data['name'],
+            desc=data['desc'],
+            blocks=blocks
+        )
 
 
 AllTypes = Literal[

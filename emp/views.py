@@ -17,6 +17,7 @@ from datetime import datetime
 from forms.models import Element, Form, Block, Input, Select, Textarea, RadioGroup, Dependency, CheckboxGroup
 from forms.serializers import FormSerializer, BlockSerializer, InputSerializer, SelectSerializer, TextareaSerializer, RadioGroupSerializer, DependencySerializer, CheckboxGroupSerializer
 from forms.serializers import FormSerializer
+from typing import Dict
 
 
 @api_view(['POST'])
@@ -272,7 +273,6 @@ def create_event_form(request):
     user = request.user
     form_name = data.get('name')
     form_description = data.get('description')
-    bg_image = data.get('bg_image')
     event_id = data.get('event_id')
     try:
         event = Event.objects.get(id=event_id)
@@ -280,7 +280,6 @@ def create_event_form(request):
             form = Form.objects.create(
                 name=form_name,
                 description=form_description,
-                bg_image=bg_image,
                 user=user,
                 published=False
             )
@@ -298,17 +297,23 @@ def create_event_form(request):
 def edit_event_form(request):
     data = request.data
     event_id = data.get('event_id')
-    form_data: FormType = data.get('form')
+    form_data = FormType.from_dict(data['form'])
+
     blocks = form_data.blocks
     try:
         event = Event.objects.get(id=event_id)
         form = event.form
         if not form:
             return Response({'message': 'Form not found'}, status=status.HTTP_400_BAD_REQUEST)
-        form.name = data.get('name')
-        form.description = data.get('description')
-        form.bg_image = data.get('bg_image')
+        form.name = form_data.name
+        form.description = form_data.desc
+        form.bg_image = form_data.bg_img
         form.save()
+        form_blocks = Block.objects.filter(form=form).all()
+        user_block_ids = [block.id for block in blocks]
+        for block in form_blocks:
+            if block.uuid not in user_block_ids:
+                block.delete()
         for block in blocks:
             block_id = block.id
             try:
@@ -320,10 +325,20 @@ def edit_event_form(request):
                     uuid=block_id,
                     title=block.title,
                     position=block.position,
+                    form=form
                 )
             elements = block.elements
+            user_element_ids = [element.id for element in elements]
+            block_elements = Element.objects.filter(
+                block=block_obj
+            ).all()
+            for element in block_elements:
+                if element.uuid not in user_element_ids:
+                    element.delete()
             for element in elements:
                 try:
+                    # print(f"element: {element}")
+                    # print(type(element))
                     el_object = Element.objects.get(uuid=element.id)
                     el_type = element.inputType
                     actual_type = "input"
@@ -333,11 +348,14 @@ def edit_event_form(request):
                         actual_type = "select"
                         input_conent_type = ContentType.objects.get_for_model(
                             Select)
-                        if not isinstance(element.element, SelectType):
+                        if not isinstance(ElementType.from_dict(
+                                element.element,  # type: ignore
+                                input_type="select"), SelectType):
                             return Response(
                                 {'message': 'Element is not a select'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        select_child: SelectType = element.element
+                        select_child: SelectType = ElementType.from_dict(
+                            element.element, input_type="select")    # type: ignore
                         try:
                             child_object = Select.objects.get(
                                 uuid=select_child.id)
@@ -357,11 +375,14 @@ def edit_event_form(request):
                         actual_type = "radio"
                         input_conent_type = ContentType.objects.get_for_model(
                             RadioGroup)
-                        if not isinstance(element.element, RadioGroupType):
+                        if not isinstance(ElementType.from_dict(
+                                element.element,  # type: ignore
+                                input_type="radio"), RadioGroupType):
                             return Response(
                                 {'message': 'Element is not a radio'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        radio_child: RadioGroupType = element.element
+                        radio_child: RadioGroupType = ElementType.from_dict(
+                            element.element, input_type="radio")    # type: ignore
                         try:
                             child_object = RadioGroup.objects.get(
                                 uuid=radio_child.id)
@@ -380,11 +401,14 @@ def edit_event_form(request):
                         actual_type = "checkbox"
                         input_conent_type = ContentType.objects.get_for_model(
                             CheckboxGroup)
-                        if not isinstance(element.element, CheckboxGroupType):
+                        if not isinstance(ElementType.from_dict(
+                                element.element,  # type: ignore
+                                input_type="checkbox"), CheckboxGroupType):
                             return Response(
                                 {'message': 'Element is not a checkbox'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        checkbox_child: CheckboxGroupType = element.element
+                        checkbox_child: CheckboxGroupType = ElementType.from_dict(
+                            element.element, input_type="checkbox")    # type: ignore
                         try:
                             child_object = CheckboxGroup.objects.get(
                                 uuid=checkbox_child.id)
@@ -400,15 +424,18 @@ def edit_event_form(request):
                                 inputs=checkbox_child.inputs
                             )
 
-                    elif el_type == "input":
+                    else:
                         actual_type = "input"
                         input_conent_type = ContentType.objects.get_for_model(
                             Input)
-                        if not isinstance(element.element, InputType):
+                        if isinstance(element.element, Dict) and not isinstance(ElementType.from_dict(element.element), InputType):
+                            # print(element.element)
+                            # print(type(element.element))
                             return Response(
                                 {'message': 'Element is not a input'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        input_child: InputType = element.element
+                        input_child = ElementType.from_dict(
+                            element.element)    # type: ignore
                         try:
                             child_object = Input.objects.get(
                                 uuid=input_child.id)
@@ -436,10 +463,6 @@ def edit_event_form(request):
                                 min_length=input_child.minLength,
                                 input_type=element.inputType
                             )
-                    else:
-                        return Response(
-                            {'message': 'Element type not supported'}, status=status.HTTP_400_BAD_REQUEST
-                        )
                     el_object.label = element.label
                     el_object.name = element.name
                     el_object.element_type = actual_type
@@ -457,11 +480,14 @@ def edit_event_form(request):
                         actual_type = "select"
                         input_conent_type = ContentType.objects.get_for_model(
                             Select)
-                        if not isinstance(element.element, SelectType):
+                        if not isinstance(ElementType.from_dict(
+                                element.element,  # type: ignore
+                                input_type="select"), SelectType):
                             return Response(
                                 {'message': 'Element is not a select'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        select_child: SelectType = element.element
+                        select_child: SelectType = ElementType.from_dict(
+                            element.element, input_type="select")    # type: ignore
                         try:
                             child_object = Select.objects.get(
                                 uuid=select_child.id)
@@ -481,11 +507,14 @@ def edit_event_form(request):
                         actual_type = "radio"
                         input_conent_type = ContentType.objects.get_for_model(
                             RadioGroup)
-                        if not isinstance(element.element, RadioGroupType):
+                        if not isinstance(ElementType.from_dict(
+                                element.element,    # type: ignore
+                                input_type="radio"), RadioGroupType):
                             return Response(
                                 {'message': 'Element is not a radio'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        radio_child: RadioGroupType = element.element
+                        radio_child: RadioGroupType = ElementType.from_dict(
+                            element.element, input_type="radio")    # type: ignore
                         try:
                             child_object = RadioGroup.objects.get(
                                 uuid=radio_child.id)
@@ -504,11 +533,15 @@ def edit_event_form(request):
                         actual_type = "checkbox"
                         input_conent_type = ContentType.objects.get_for_model(
                             CheckboxGroup)
-                        if not isinstance(element.element, CheckboxGroupType):
+                        if not isinstance(ElementType.from_dict(
+                                element.element,    # type: ignore
+                                input_type="checkbox"),
+                                CheckboxGroupType):
                             return Response(
                                 {'message': 'Element is not a checkbox'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        checkbox_child: CheckboxGroupType = element.element
+                        checkbox_child: CheckboxGroupType = ElementType.from_dict(
+                            element.element, input_type="checkbox")    # type: ignore
                         try:
                             child_object = CheckboxGroup.objects.get(
                                 uuid=checkbox_child.id)
@@ -524,15 +557,18 @@ def edit_event_form(request):
                                 inputs=checkbox_child.inputs
                             )
 
-                    elif el_type == "input":
+                    else:
                         actual_type = "input"
                         input_conent_type = ContentType.objects.get_for_model(
                             Input)
-                        if not isinstance(element.element, InputType):
+                        if isinstance(element.element, Dict) and not isinstance(ElementType.from_dict(element.element), InputType):
+                            # print(element.element)
+                            # print(type(element.element))
                             return Response(
                                 {'message': 'Element is not a input'}, status=status.HTTP_400_BAD_REQUEST
                             )
-                        input_child: InputType = element.element
+                        input_child: InputType = ElementType.from_dict(
+                            element.element)    # type: ignore
                         try:
                             child_object = Input.objects.get(
                                 uuid=input_child.id)
@@ -560,10 +596,6 @@ def edit_event_form(request):
                                 min_length=input_child.minLength,
                                 input_type=element.inputType
                             )
-                    else:
-                        return Response(
-                            {'message': 'Element type not supported'}, status=status.HTTP_400_BAD_REQUEST
-                        )
                     el_object = Element.objects.create(
                         uuid=element.id,
                         label=element.label,

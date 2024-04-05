@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Form, Input, CheckboxGroup, Select, RadioGroup, Block, Dependency
+from .models import Form, Input, CheckboxGroup, Select, RadioGroup, Block, Dependency, Element
 
 
 admin.site.register(Form)
@@ -9,3 +9,4 @@ admin.site.register(Select)
 admin.site.register(RadioGroup)
 admin.site.register(Block)
 admin.site.register(Dependency)
+admin.site.register(Element)
