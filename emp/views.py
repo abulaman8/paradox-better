@@ -312,19 +312,19 @@ def edit_event_form(request):
         for block in blocks:
             block_id = block.id
             try:
-                block_obj = Block.objects.get(id=block_id)
+                block_obj = Block.objects.get(uuid=block_id)
                 block_obj.title = block.title
                 block_obj.position = block.position
             except Block.DoesNotExist:
                 block_obj = Block.objects.create(
-                    id=block_id,
+                    uuid=block_id,
                     title=block.title,
                     position=block.position,
                 )
             elements = block.elements
             for element in elements:
                 try:
-                    el_object = Element.objects.get(id=element.id)
+                    el_object = Element.objects.get(uuid=element.id)
                     el_type = element.inputType
                     actual_type = "input"
                     input_conent_type = ContentType.objects.get_for_model(
@@ -340,13 +340,14 @@ def edit_event_form(request):
                         select_child: SelectType = element.element
                         try:
                             child_object = Select.objects.get(
-                                id=select_child.id)
+                                uuid=select_child.id)
                             child_object.value = select_child.value
                             child_object.required = select_child.required
                             child_object.inputs = select_child.inputs
                             child_object.save()
                         except Select.DoesNotExist:
                             child_object = Select.objects.create(
+                                uuid=select_child.id,
                                 value=select_child.value,
                                 required=select_child.required,
                                 inputs=select_child.inputs
@@ -363,13 +364,14 @@ def edit_event_form(request):
                         radio_child: RadioGroupType = element.element
                         try:
                             child_object = RadioGroup.objects.get(
-                                id=radio_child.id)
+                                uuid=radio_child.id)
                             child_object.value = radio_child.value
                             child_object.required = radio_child.required
                             child_object.inputs = radio_child.inputs
                             child_object.save()
                         except RadioGroup.DoesNotExist:
                             child_object = RadioGroup.objects.create(
+                                uuid=radio_child.id,
                                 value=radio_child.value,
                                 required=radio_child.required,
                                 inputs=radio_child.inputs
@@ -385,13 +387,14 @@ def edit_event_form(request):
                         checkbox_child: CheckboxGroupType = element.element
                         try:
                             child_object = CheckboxGroup.objects.get(
-                                id=checkbox_child.id)
+                                uuid=checkbox_child.id)
                             child_object.values = checkbox_child.values
                             child_object.required = checkbox_child.required
                             child_object.inputs = checkbox_child.inputs
                             child_object.save()
                         except CheckboxGroup.DoesNotExist:
                             child_object = CheckboxGroup.objects.create(
+                                uuid=checkbox_child.id,
                                 values=checkbox_child.values,
                                 required=checkbox_child.required,
                                 inputs=checkbox_child.inputs
@@ -408,7 +411,7 @@ def edit_event_form(request):
                         input_child: InputType = element.element
                         try:
                             child_object = Input.objects.get(
-                                id=input_child.id)
+                                uuid=input_child.id)
                             child_object.value = input_child.value
                             child_object.required = input_child.required
                             child_object.placeholder = input_child.placeholder
@@ -422,6 +425,7 @@ def edit_event_form(request):
                             child_object.save()
                         except Input.DoesNotExist:
                             child_object = Input.objects.create(
+                                uuid=input_child.id,
                                 value=input_child.value,
                                 required=input_child.required,
                                 placeholder=input_child.placeholder,
@@ -460,14 +464,14 @@ def edit_event_form(request):
                         select_child: SelectType = element.element
                         try:
                             child_object = Select.objects.get(
-                                id=select_child.id)
+                                uuid=select_child.id)
                             child_object.value = select_child.value
                             child_object.required = select_child.required
                             child_object.inputs = select_child.inputs
                             child_object.save()
                         except Select.DoesNotExist:
                             child_object = Select.objects.create(
-                                id=select_child.id,
+                                uuid=select_child.id,
                                 value=select_child.value,
                                 required=select_child.required,
                                 inputs=select_child.inputs
@@ -484,14 +488,14 @@ def edit_event_form(request):
                         radio_child: RadioGroupType = element.element
                         try:
                             child_object = RadioGroup.objects.get(
-                                id=radio_child.id)
+                                uuid=radio_child.id)
                             child_object.value = radio_child.value
                             child_object.required = radio_child.required
                             child_object.inputs = radio_child.inputs
                             child_object.save()
                         except RadioGroup.DoesNotExist:
                             child_object = RadioGroup.objects.create(
-                                id=radio_child.id,
+                                uuid=radio_child.id,
                                 value=radio_child.value,
                                 required=radio_child.required,
                                 inputs=radio_child.inputs
@@ -507,14 +511,14 @@ def edit_event_form(request):
                         checkbox_child: CheckboxGroupType = element.element
                         try:
                             child_object = CheckboxGroup.objects.get(
-                                id=checkbox_child.id)
+                                uuid=checkbox_child.id)
                             child_object.values = checkbox_child.values
                             child_object.required = checkbox_child.required
                             child_object.inputs = checkbox_child.inputs
                             child_object.save()
                         except CheckboxGroup.DoesNotExist:
                             child_object = CheckboxGroup.objects.create(
-                                id=checkbox_child.id,
+                                uuid=checkbox_child.id,
                                 values=checkbox_child.values,
                                 required=checkbox_child.required,
                                 inputs=checkbox_child.inputs
@@ -531,7 +535,7 @@ def edit_event_form(request):
                         input_child: InputType = element.element
                         try:
                             child_object = Input.objects.get(
-                                id=input_child.id)
+                                uuid=input_child.id)
                             child_object.value = input_child.value
                             child_object.required = input_child.required
                             child_object.placeholder = input_child.placeholder
@@ -545,6 +549,7 @@ def edit_event_form(request):
                             child_object.save()
                         except Input.DoesNotExist:
                             child_object = Input.objects.create(
+                                uuid=input_child.id,
                                 value=input_child.value,
                                 required=input_child.required,
                                 placeholder=input_child.placeholder,
@@ -560,6 +565,7 @@ def edit_event_form(request):
                             {'message': 'Element type not supported'}, status=status.HTTP_400_BAD_REQUEST
                         )
                     el_object = Element.objects.create(
+                        uuid=element.id,
                         label=element.label,
                         position=element.position,
                         block=block_obj,

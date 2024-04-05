@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import User
+import uuid
 
 
 class Form(models.Model):
@@ -21,6 +22,8 @@ class Form(models.Model):
 
 class Block(models.Model):
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     form = models.ForeignKey(Form, on_delete=models.CASCADE)
     title = models.CharField(max_length=128)
     position = models.IntegerField()
@@ -43,6 +46,8 @@ class Element(models.Model):
         ('radio_group', 'Radio Group'),
     )
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     name = models.CharField(max_length=128)
     position = models.IntegerField()
     block = models.ForeignKey(Block, on_delete=models.CASCADE)
@@ -70,6 +75,8 @@ class Input(models.Model):
     )
 
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     input_type = models.CharField(max_length=128, choices=INPUT_TYPES)
     required = models.BooleanField(default=False)
     placeholder = models.CharField(max_length=128, null=True, blank=True)
@@ -91,6 +98,8 @@ class Input(models.Model):
 
 class Textarea(models.Model):
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     required = models.BooleanField(default=False)
     placeholder = models.CharField(max_length=128, null=True, blank=True)
     max_length = models.IntegerField(null=True, blank=True)
@@ -110,6 +119,8 @@ class Textarea(models.Model):
 
 class RadioGroup(models.Model):
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     inputs = models.JSONField()
     value = models.CharField(max_length=128, null=True, blank=True)
     required = models.BooleanField(default=False)
@@ -125,6 +136,8 @@ class RadioGroup(models.Model):
 
 class CheckboxGroup(models.Model):
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     inputs = models.JSONField()
     values = models.JSONField(default=list)
     required = models.BooleanField(default=False)
@@ -140,6 +153,8 @@ class CheckboxGroup(models.Model):
 
 class Select(models.Model):
     id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, null=True, blank=True)
     inputs = models.JSONField()
     value = models.CharField(max_length=128, null=True, blank=True)
     required = models.BooleanField(default=False)
