@@ -4,18 +4,16 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-from core.models import Student, Event, Department
-from core.serializers import EventSerializer
+from core.models import FAQ, Link, Sponsor, Event, Department
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
 from .models import Round, SomeDude
-from .serializers import RoundSerializer
+from .serializers import RoundSerializer, EventSerializer
 from utils.decorators import has_perms, authed
 from .decorators import has_event_perms
-from datetime import datetime
+from datetime import datetime, timezone
 
-from forms.models import Element, Form, Block, Input, Select, Textarea, RadioGroup, Dependency, CheckboxGroup
-from forms.serializers import FormSerializer, BlockSerializer, InputSerializer, SelectSerializer, TextareaSerializer, RadioGroupSerializer, DependencySerializer, CheckboxGroupSerializer
+from forms.models import Element, Form, Block, Input, Select, RadioGroup, CheckboxGroup
+from forms.serializers import FormSerializer
 from forms.serializers import FormSerializer
 from typing import Dict
 
@@ -33,15 +31,23 @@ def add_event(request):
     min_team_size = data.get('min_team_size')
     max_participants = data.get('max_participants')
     fee = data.get('fee')
+    header_image = data.get('header_image')
     description = data.get('description')
     location = data.get('location')
     location_link = data.get('location_link')
-    start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d %H:%M:%S')
-    end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d %H:%M:%S')
-    registration_start_date = datetime.strptime(
-        data.get('registration_start_date'), '%Y-%m-%d %H:%M:%S')
-    registration_end_date = datetime.strptime(
-        data.get('registration_end_date'), '%Y-%m-%d %H:%M:%S')
+    start_date = datetime.fromtimestamp(
+        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc)
+    end_date = datetime.fromtimestamp(
+        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc)
+    registration_start_date = datetime.fromtimestamp(
+        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc)
+    registration_end_date = datetime.fromtimestamp(
+        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc)
+    sponsors = data.get('sponsors')
+    rounds = data.get('rounds')
+    social_links = data.get('social_links')
+    faqs = data.get('faqs')
+    some_dudes = data.get('some_dudes')
     try:
         user = User.objects.get(email=head_email)
         dept = Department.objects.get(id=dept_id)
@@ -51,6 +57,7 @@ def add_event(request):
             name=event_name,
             head=user,
             department=dept,
+            header_image=header_image,
             is_team_event=is_team_event,
             max_team_size=max_team_size,
             min_team_size=min_team_size,
@@ -64,6 +71,51 @@ def add_event(request):
             registration_start_date=registration_start_date,
             registration_end_date=registration_end_date
         )
+        for faq in faqs:
+            FAQ.objects.create(
+                question=faq.get('question'),
+                answer=faq.get('answer'),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id
+            )
+        for link in social_links:
+            Link.objects.create(
+                name=link.get('name'),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id,
+                url=link.get('url')
+            )
+        for round in rounds:
+            Round.objects.create(
+                event=event,
+                name=round.get('name'),
+                start_time=datetime.fromtimestamp(
+                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc),
+                end_time=datetime.fromtimestamp(
+                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc),
+                location=round.get('location'),
+                location_link=round.get('location_link'),
+                description=round.get('description')
+            )
+        for sponsor in sponsors:
+            Sponsor.objects.create(
+                name=sponsor.get('name'),
+                title=sponsor.get('title'),
+                logo=sponsor.get('logo'),
+                url=sponsor.get('url'),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id
+            )
+        for some_dude in some_dudes:
+            SomeDude.objects.create(
+                name=some_dude.get('name'),
+                email=some_dude.get('email'),
+                event=event,
+                image=some_dude.get('image'),
+                bio=some_dude.get('bio'),
+
+            )
+
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     except User.DoesNotExist:
@@ -77,7 +129,6 @@ def add_event(request):
 def edit_event(request):
     data = request.data
     event_id = data.get('event_id')
-    event = Event.objects.get(id=event_id)
     event_name = data.get('event_name')
     head_email = data.get('head_email')
     is_team_event = data.get('is_team_event')
@@ -87,14 +138,23 @@ def edit_event(request):
     fee = data.get('fee')
     description = data.get('description')
     location = data.get('location')
+    location = data.get('location')
     location_link = data.get('location_link')
-    start_date = datetime.strptime(data.get('start_date'), '%Y-%m-%d %H:%M:%S')
-    end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d %H:%M:%S')
-    registration_start_date = datetime.strptime(
-        data.get('registration_start_date'), '%Y-%m-%d %H:%M:%S')
-    registration_end_date = datetime.strptime(
-        data.get('registration_end_date'), '%Y-%m-%d %H:%M:%S')
+    start_date = datetime.fromtimestamp(
+        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc)
+    end_date = datetime.fromtimestamp(
+        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc)
+    registration_start_date = datetime.fromtimestamp(
+        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc)
+    registration_end_date = datetime.fromtimestamp(
+        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc)
+    sponsors = data.get('sponsors')
+    rounds = data.get('rounds')
+    social_links = data.get('social_links')
+    faqs = data.get('faqs')
+    some_dudes = data.get('some_dudes')
     try:
+        event = Event.objects.get(id=event_id)
         user = User.objects.get(email=head_email)
         event.name = event_name
         event.head = user
@@ -112,10 +172,74 @@ def edit_event(request):
         event.registration_end_date = registration_end_date
         event.is_approved = False
         event.save()
+        FAQ.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=event.id
+        ).delete()
+        Link.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=event.id
+        ).delete()
+        Round.objects.filter(
+            event=event
+        ).delete()
+        Sponsor.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=event.id
+        ).delete()
+        SomeDude.objects.filter(
+            event=event
+        ).delete()
+        for faq in faqs:
+            FAQ.objects.create(
+                question=faq.get('question'),
+                answer=faq.get('answer'),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id
+            )
+        for link in social_links:
+            Link.objects.create(
+                name=link.get('name'),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id,
+                url=link.get('url')
+            )
+        for round in rounds:
+            Round.objects.create(
+                event=event,
+                name=round.get('name'),
+                start_time=datetime.fromtimestamp(
+                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc),
+                end_time=datetime.fromtimestamp(
+                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc),
+                location=round.get('location'),
+                location_link=round.get('location_link'),
+                description=round.get('description')
+            )
+        for sponsor in sponsors:
+            Sponsor.objects.create(
+                name=sponsor.get('name'),
+                title=sponsor.get('title'),
+                logo=sponsor.get('logo'),
+                url=sponsor.get('url'),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id
+            )
+        for some_dude in some_dudes:
+            SomeDude.objects.create(
+                name=some_dude.get('name'),
+                email=some_dude.get('email'),
+                event=event,
+                image=some_dude.get('image'),
+                bio=some_dude.get('bio'),
+
+            )
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({'message': 'User with the provided email not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['DELETE'])

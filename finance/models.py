@@ -69,6 +69,7 @@ class Bill(models.Model):
     date_created = models.DateTimeField(
         auto_now_add=True, null=True, blank=True)
     message = models.TextField(null=True, blank=True)
+    upi_id = models.CharField(max_length=32, null=True, blank=True)
 
     def __str__(self):
         return self.title

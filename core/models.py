@@ -33,9 +33,9 @@ class Student(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        try:
-            user = User.objects.get(email=self.email)
-        except User.DoesNotExist:
+
+        user = User.objects.filter(email=self.email).first()
+        if not user:
             return self.email
         return user.first_name + ' ' + user.last_name
 
@@ -98,8 +98,7 @@ class Event(models.Model):
     is_team_event = models.BooleanField(default=False)
     max_team_size = models.IntegerField(null=True, blank=True)
     min_team_size = models.IntegerField(null=True, blank=True)
-    header_image = models.ImageField(
-        upload_to='event_header_images', null=True, blank=True)
+    header_image = models.URLField(max_length=2048, null=True, blank=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     registration_start_date = models.DateTimeField(null=True, blank=True)
@@ -162,7 +161,7 @@ class Sponsor(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=100)
-    logo = models.ImageField(upload_to='sponsors')
+    logo = models.URLField(max_length=2048)
     url = models.URLField()
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=True)
@@ -327,3 +326,11 @@ def delete_department_handler(sender, instance, **kwargs):
     instance.account.delete()
     roles = Role.objects.filter(
         content_type=dept_type, object_id=instance.id).delete()
+
+
+@receiver(pre_delete, sender=Event)
+def delete_event_handler(sender, instance, **kwargs):
+    event_type = ContentType.objects.get_for_model(Event)
+    instance.account.delete()
+    roles = Role.objects.filter(
+        content_type=event_type, object_id=instance.id).delete()

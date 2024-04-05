@@ -32,7 +32,7 @@ class SomeDude(models.Model):
     email = models.EmailField()
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, related_name='some_dudes', null=True, blank=True)
-    image = models.ImageField(upload_to='some_dudes')
+    image = models.URLField(max_length=2048, null=True, blank=True)
     bio = models.TextField()
 
     def __str__(self):

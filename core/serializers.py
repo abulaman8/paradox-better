@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import QuerySet
 from django.db.models import Q
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
-from .models import Department, Role, ApprovalStatus, SubDepartment, Event
+from .models import Department, Role, ApprovalStatus, SubDepartment, Event, Sponsor, FAQ, Link
 from utils.fns import get_fin_permissions, get_user_permissions
 
 
@@ -284,3 +284,21 @@ class DepartmentDetailSerializer(ModelSerializer):
         model = Department
         fields = ['id', 'name', 'core', 'deputy_core', 'members']
         read_only_fields = ['id', 'name', 'core', 'deputy_core', 'members']
+
+
+class SponsorSerializer(ModelSerializer):
+    class Meta:
+        model = Sponsor
+        exclude = ['content_type', 'object_id']
+
+
+class FAQSerializer(ModelSerializer):
+    class Meta:
+        model = FAQ
+        exclude = ['content_type', 'object_id']
+
+
+class LinkSerializer(ModelSerializer):
+    class Meta:
+        model = Link
+        exclude = ['content_type', 'object_id']
