@@ -126,7 +126,7 @@ class RadioGroup(models.Model):
 class CheckboxGroup(models.Model):
     id = models.AutoField(primary_key=True)
     inputs = models.JSONField()
-    value = models.CharField(max_length=128, null=True, blank=True)
+    values = models.JSONField(default=list)
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -2,6 +2,16 @@ from django.db import models
 from core.models import Student
 
 
+def custom_pwd_upload_to(instance, filename):
+    filename, file_extension = filename.split('.')
+    return f'pwd_certificates/{instance.pk}_{filename}.{file_extension}'
+
+
+def custom_passport_upload_to(instance, filename):
+    filename, file_extension = filename.split('.')
+    return f'passport/{instance.pk}_{filename}.{file_extension}'
+
+
 class FestRegistrstion(models.Model):
     id = models.AutoField(primary_key=True)
     student = models.ForeignKey(
@@ -31,9 +41,10 @@ class AccomodationRegistration(models.Model):
     medical_issues = models.TextField(null=True, blank=True)
     pwd = models.BooleanField(default=False)
     pwd_certificate = models.FileField(
-        upload_to='pwd_certificates/', null=True, blank=True)
+        upload_to=custom_pwd_upload_to, null=True, blank=True)
     outside_india = models.BooleanField(default=False)
-    passport = models.FileField(upload_to='passport/', null=True, blank=True)
+    passport = models.FileField(
+        upload_to=custom_passport_upload_to, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     payment_status = models.BooleanField(default=False)

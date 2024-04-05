@@ -170,3 +170,9 @@ class FormSerializer(ModelSerializer):
     def get_blocks(self, obj):
         blocks = Block.objects.filter(form=obj).order_by('position').all()
         return BlockSerializer(blocks, many=True).data
+
+
+class FormEditSerializer(ModelSerializer):
+    class Meta:
+        model = Form
+        fields = '__all__'

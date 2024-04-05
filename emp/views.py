@@ -1,18 +1,20 @@
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from core.models import Student, Event, Department
 from core.serializers import EventSerializer
+from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
 from .models import Round, SomeDude
 from .serializers import RoundSerializer
 from utils.decorators import has_perms, authed
 from .decorators import has_event_perms
 from datetime import datetime
 
-from forms.models import Form, Block, Input, Select, Textarea, RadioGroup, Dependency, CheckboxGroup
+from forms.models import Element, Form, Block, Input, Select, Textarea, RadioGroup, Dependency, CheckboxGroup
 from forms.serializers import FormSerializer, BlockSerializer, InputSerializer, SelectSerializer, TextareaSerializer, RadioGroupSerializer, DependencySerializer, CheckboxGroupSerializer
 from forms.serializers import FormSerializer
 
@@ -291,34 +293,283 @@ def create_event_form(request):
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['PUT'])
 @has_perms(['change_event'])
-def add_block(request):
+def edit_event_form(request):
     data = request.data
-    user = request.user
     event_id = data.get('event_id')
+    form_data: FormType = data.get('form')
+    blocks = form_data.blocks
     try:
         event = Event.objects.get(id=event_id)
         form = event.form
         if not form:
-            return Response({'message': 'Form not found for the event, create a form to continue'}, status=status.HTTP_400_BAD_REQUEST)
-        block_title = data.get('title')
-        block_position = data.get('position')
-        block = Block.objects.create(
-            form=form,
-            title=block_title,
-            position=block_position
-        )
+            return Response({'message': 'Form not found'}, status=status.HTTP_400_BAD_REQUEST)
+        form.name = data.get('name')
+        form.description = data.get('description')
+        form.bg_image = data.get('bg_image')
+        form.save()
+        for block in blocks:
+            block_id = block.id
+            try:
+                block_obj = Block.objects.get(id=block_id)
+                block_obj.title = block.title
+                block_obj.position = block.position
+            except Block.DoesNotExist:
+                block_obj = Block.objects.create(
+                    id=block_id,
+                    title=block.title,
+                    position=block.position,
+                )
+            elements = block.elements
+            for element in elements:
+                try:
+                    el_object = Element.objects.get(id=element.id)
+                    el_type = element.inputType
+                    actual_type = "input"
+                    input_conent_type = ContentType.objects.get_for_model(
+                        Input)
+                    if el_type == "select":
+                        actual_type = "select"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            Select)
+                        if not isinstance(element.element, SelectType):
+                            return Response(
+                                {'message': 'Element is not a select'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        select_child: SelectType = element.element
+                        try:
+                            child_object = Select.objects.get(
+                                id=select_child.id)
+                            child_object.value = select_child.value
+                            child_object.required = select_child.required
+                            child_object.inputs = select_child.inputs
+                            child_object.save()
+                        except Select.DoesNotExist:
+                            child_object = Select.objects.create(
+                                value=select_child.value,
+                                required=select_child.required,
+                                inputs=select_child.inputs
+                            )
+
+                    elif el_type == "radio":
+                        actual_type = "radio"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            RadioGroup)
+                        if not isinstance(element.element, RadioGroupType):
+                            return Response(
+                                {'message': 'Element is not a radio'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        radio_child: RadioGroupType = element.element
+                        try:
+                            child_object = RadioGroup.objects.get(
+                                id=radio_child.id)
+                            child_object.value = radio_child.value
+                            child_object.required = radio_child.required
+                            child_object.inputs = radio_child.inputs
+                            child_object.save()
+                        except RadioGroup.DoesNotExist:
+                            child_object = RadioGroup.objects.create(
+                                value=radio_child.value,
+                                required=radio_child.required,
+                                inputs=radio_child.inputs
+                            )
+                    elif el_type == "checkbox":
+                        actual_type = "checkbox"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            CheckboxGroup)
+                        if not isinstance(element.element, CheckboxGroupType):
+                            return Response(
+                                {'message': 'Element is not a checkbox'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        checkbox_child: CheckboxGroupType = element.element
+                        try:
+                            child_object = CheckboxGroup.objects.get(
+                                id=checkbox_child.id)
+                            child_object.values = checkbox_child.values
+                            child_object.required = checkbox_child.required
+                            child_object.inputs = checkbox_child.inputs
+                            child_object.save()
+                        except CheckboxGroup.DoesNotExist:
+                            child_object = CheckboxGroup.objects.create(
+                                values=checkbox_child.values,
+                                required=checkbox_child.required,
+                                inputs=checkbox_child.inputs
+                            )
+
+                    elif el_type == "input":
+                        actual_type = "input"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            Input)
+                        if not isinstance(element.element, InputType):
+                            return Response(
+                                {'message': 'Element is not a input'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        input_child: InputType = element.element
+                        try:
+                            child_object = Input.objects.get(
+                                id=input_child.id)
+                            child_object.value = input_child.value
+                            child_object.required = input_child.required
+                            child_object.placeholder = input_child.placeholder
+                            child_object.autocomplete = input_child.autocomplete
+                            child_object.max = input_child.max
+                            child_object.min = input_child.min
+                            child_object.max_length = input_child.maxLength
+                            child_object.min_length = input_child.minLength
+                            child_object.input_type = element.inputType
+
+                            child_object.save()
+                        except Input.DoesNotExist:
+                            child_object = Input.objects.create(
+                                value=input_child.value,
+                                required=input_child.required,
+                                placeholder=input_child.placeholder,
+                                autocomplete=input_child.autocomplete,
+                                max=input_child.max,
+                                min=input_child.min,
+                                max_length=input_child.maxLength,
+                                min_length=input_child.minLength,
+                                input_type=element.inputType
+                            )
+                    else:
+                        return Response(
+                            {'message': 'Element type not supported'}, status=status.HTTP_400_BAD_REQUEST
+                        )
+                    el_object.label = element.label
+                    el_object.name = element.name
+                    el_object.element_type = actual_type
+                    el_object.position = element.position
+                    el_object.content_type = input_conent_type
+                    el_object.object_id = child_object.id
+                    el_object.save()
+
+                except Element.DoesNotExist:
+                    el_type = element.inputType
+                    actual_type = "input"
+                    input_conent_type = ContentType.objects.get_for_model(
+                        Input)
+                    if el_type == "select":
+                        actual_type = "select"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            Select)
+                        if not isinstance(element.element, SelectType):
+                            return Response(
+                                {'message': 'Element is not a select'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        select_child: SelectType = element.element
+                        try:
+                            child_object = Select.objects.get(
+                                id=select_child.id)
+                            child_object.value = select_child.value
+                            child_object.required = select_child.required
+                            child_object.inputs = select_child.inputs
+                            child_object.save()
+                        except Select.DoesNotExist:
+                            child_object = Select.objects.create(
+                                id=select_child.id,
+                                value=select_child.value,
+                                required=select_child.required,
+                                inputs=select_child.inputs
+                            )
+
+                    elif el_type == "radio":
+                        actual_type = "radio"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            RadioGroup)
+                        if not isinstance(element.element, RadioGroupType):
+                            return Response(
+                                {'message': 'Element is not a radio'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        radio_child: RadioGroupType = element.element
+                        try:
+                            child_object = RadioGroup.objects.get(
+                                id=radio_child.id)
+                            child_object.value = radio_child.value
+                            child_object.required = radio_child.required
+                            child_object.inputs = radio_child.inputs
+                            child_object.save()
+                        except RadioGroup.DoesNotExist:
+                            child_object = RadioGroup.objects.create(
+                                id=radio_child.id,
+                                value=radio_child.value,
+                                required=radio_child.required,
+                                inputs=radio_child.inputs
+                            )
+                    elif el_type == "checkbox":
+                        actual_type = "checkbox"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            CheckboxGroup)
+                        if not isinstance(element.element, CheckboxGroupType):
+                            return Response(
+                                {'message': 'Element is not a checkbox'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        checkbox_child: CheckboxGroupType = element.element
+                        try:
+                            child_object = CheckboxGroup.objects.get(
+                                id=checkbox_child.id)
+                            child_object.values = checkbox_child.values
+                            child_object.required = checkbox_child.required
+                            child_object.inputs = checkbox_child.inputs
+                            child_object.save()
+                        except CheckboxGroup.DoesNotExist:
+                            child_object = CheckboxGroup.objects.create(
+                                id=checkbox_child.id,
+                                values=checkbox_child.values,
+                                required=checkbox_child.required,
+                                inputs=checkbox_child.inputs
+                            )
+
+                    elif el_type == "input":
+                        actual_type = "input"
+                        input_conent_type = ContentType.objects.get_for_model(
+                            Input)
+                        if not isinstance(element.element, InputType):
+                            return Response(
+                                {'message': 'Element is not a input'}, status=status.HTTP_400_BAD_REQUEST
+                            )
+                        input_child: InputType = element.element
+                        try:
+                            child_object = Input.objects.get(
+                                id=input_child.id)
+                            child_object.value = input_child.value
+                            child_object.required = input_child.required
+                            child_object.placeholder = input_child.placeholder
+                            child_object.autocomplete = input_child.autocomplete
+                            child_object.max = input_child.max
+                            child_object.min = input_child.min
+                            child_object.max_length = input_child.maxLength
+                            child_object.min_length = input_child.minLength
+                            child_object.input_type = element.inputType
+
+                            child_object.save()
+                        except Input.DoesNotExist:
+                            child_object = Input.objects.create(
+                                value=input_child.value,
+                                required=input_child.required,
+                                placeholder=input_child.placeholder,
+                                autocomplete=input_child.autocomplete,
+                                max=input_child.max,
+                                min=input_child.min,
+                                max_length=input_child.maxLength,
+                                min_length=input_child.minLength,
+                                input_type=element.inputType
+                            )
+                    else:
+                        return Response(
+                            {'message': 'Element type not supported'}, status=status.HTTP_400_BAD_REQUEST
+                        )
+                    el_object = Element.objects.create(
+                        label=element.label,
+                        position=element.position,
+                        block=block_obj,
+                        name=element.name,
+                        element_type=actual_type,
+                        content_type=input_conent_type,
+                        object_id=child_object.id
+                    )
+
         serializer = FormSerializer(form)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['POST'])
-@has_perms(['change_event'])
-def add_input(request):
-    data = request.data
-    user = request.user
-    event_id = data.get('event_id')
-    block_id = data.get('block_id')
