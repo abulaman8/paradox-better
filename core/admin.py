@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account, Department, SubDepartment, ApprovalStatus, Role, Event, Student, Link, OTP, FAQ, QrCode, Sponsor, Blacklist, GalleryImage
+from .models import Account, Department, SubDepartment, ApprovalStatus, Role, Event, Student, Link, OTP, FAQ, QrCode, Sponsor, Blacklist, GalleryImage, Action
 
 admin.site.register(Account)
 admin.site.register(Department)
@@ -15,3 +15,4 @@ admin.site.register(QrCode)
 admin.site.register(Sponsor)
 admin.site.register(Blacklist)
 admin.site.register(GalleryImage)
+admin.site.register(Action)

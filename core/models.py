@@ -16,6 +16,32 @@ class Blacklist(models.Model):
         return self.email
 
 
+class ApprovalStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=64, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Action(models.Model):
+    id = models.AutoField(primary_key=True)
+    message = models.TextField(null=True, blank=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    approval_status = models.ForeignKey(
+        ApprovalStatus, on_delete=models.PROTECT)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:  # type: ignore
+        ordering = ['-created_at']
+
+
 class Student(models.Model):
     gender_choices = [
         ('Male', 'Male'),
@@ -196,14 +222,6 @@ class FAQ(models.Model):
 
     def __str__(self):
         return str(self.content_object) + " - " + self.question
-
-
-class ApprovalStatus(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=64, unique=True)
-
-    def __str__(self):
-        return self.name
 
 
 @receiver(post_save, sender=User)

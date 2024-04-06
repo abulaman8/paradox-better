@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import QuerySet
 from django.db.models import Q
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
-from .models import Department, Role, ApprovalStatus, SubDepartment, Event, Sponsor, FAQ, Link
+from .models import Department, Role, ApprovalStatus, SubDepartment, Event, Sponsor, FAQ, Link, Action
 from utils.fns import get_fin_permissions, get_user_permissions
 
 
@@ -40,6 +40,19 @@ class ApprovalStatusSerializer(ModelSerializer):
         for i in l:
             r += i + " "
         return r.strip()
+
+
+class ActionSerializer(ModelSerializer):
+    user = SerializerMethodField()
+    approval_status = ApprovalStatusSerializer()
+
+    class Meta:
+        model = Action
+        fields = ['id', 'message', 'user', 'approval_status']
+        read_only_fields = ['id', 'message', 'user', 'approval_status']
+
+    def get_user(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
 
 
 class RoleSerializer(ModelSerializer):

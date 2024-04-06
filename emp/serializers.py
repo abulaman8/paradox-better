@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from django.contrib.contenttypes.models import ContentType
-from core.models import FAQ, Event, Sponsor
-from core.serializers import SponsorSerializer, FAQSerializer, LinkSerializer
+from core.models import FAQ, Event, Sponsor, Link, Action
+from core.serializers import SponsorSerializer, FAQSerializer, LinkSerializer, ActionSerializer
 from .models import Round, SomeDude
 
 
@@ -35,6 +35,8 @@ class EventSerializer(ModelSerializer):
     faqs = SerializerMethodField()
     rounds = SerializerMethodField()
     some_dudes = SerializerMethodField()
+    messages = SerializerMethodField()
+    social_links = SerializerMethodField()
 
     class Meta:
         model = Event
@@ -61,7 +63,9 @@ class EventSerializer(ModelSerializer):
             'sponsors',
             'faqs',
             'rounds',
-            'some_dudes'
+            'some_dudes',
+            'messages',
+            'social_links'
         ]
 
     def get_department(self, obj):
@@ -98,3 +102,17 @@ class EventSerializer(ModelSerializer):
             event=obj
         ).all()
         return SomeDudeSerializer(some_dudes, many=True).data
+
+    def get_social_links(self, obj):
+        social_links = Link.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=obj.id
+        ).all()
+        return LinkSerializer(social_links, many=True).data
+
+    def get_messages(self, obj):
+        messages = Action.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=obj.id
+        ).all()
+        return ActionSerializer(messages, many=True).data

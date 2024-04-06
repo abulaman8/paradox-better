@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from core.models import FAQ, Link, Sponsor, Event, Department
+from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
 from .models import Round, SomeDude
 from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
@@ -263,11 +263,20 @@ def approve_event(request):
     data = request.data
     event_id = data.get('event_id')
     try:
-        event = Event.objects.get(id=event_id)
-        event.is_approved = True
-        event.save()
-        serializer = EventSerializer(event)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        with transaction.atomic():
+            event = Event.objects.get(id=event_id)
+            event.is_approved = True
+            event.save()
+            Action.objects.create(
+                user=request.user,
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id,
+                approval_status=ApprovalStatus.objects.get(
+                    name="final_level_approved"),
+                message="Event approved"
+            )
+            serializer = EventSerializer(event)
+            return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -277,12 +286,24 @@ def approve_event(request):
 def disapprove_event(request):
     data = request.data
     event_id = data.get('event_id')
+    message = data.get('message')
+    if not message:
+        return Response({'message': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
-        event = Event.objects.get(id=event_id)
-        event.is_approved = False
-        event.save()
-        serializer = EventSerializer(event)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        with transaction.atomic():
+            event = Event.objects.get(id=event_id)
+            event.is_approved = False
+            event.save()
+            Action.objects.create(
+                user=request.user,
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id,
+                approval_status=ApprovalStatus.objects.get(
+                    name="final_level_rejected"),
+                message=message
+            )
+            serializer = EventSerializer(event)
+            return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
 
