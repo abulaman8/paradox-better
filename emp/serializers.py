@@ -17,6 +17,17 @@ class SomeDudeSerializer(ModelSerializer):
         exclude = ['event']
 
 
+class SimpleEventSerializer(ModelSerializer):
+    head = SerializerMethodField()
+
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'head']
+
+    def get_head(self, obj):
+        return obj.head.email
+
+
 class EventSerializer(ModelSerializer):
     department = SerializerMethodField()
     head = SerializerMethodField()
@@ -54,7 +65,10 @@ class EventSerializer(ModelSerializer):
         ]
 
     def get_department(self, obj):
-        return obj.department.name
+        return {
+            "id": obj.department.id,
+            "name": obj.department.name
+        }
 
     def get_head(self, obj):
         return obj.head.email

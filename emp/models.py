@@ -23,7 +23,7 @@ class SomeDude(models.Model):
         ('speaker', 'Speaker'),
         ('judge', 'Judge'),
         ('mentor', 'Mentor'),
-        ('Panelist', 'Panelist')
+        ('panelist', 'Panelist')
     ]
 
     id = models.AutoField(primary_key=True)

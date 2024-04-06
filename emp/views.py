@@ -110,6 +110,7 @@ def add_event(request):
             SomeDude.objects.create(
                 name=some_dude.get('name'),
                 email=some_dude.get('email'),
+                dude_type=some_dude.get('dude_type'),
                 event=event,
                 image=some_dude.get('image'),
                 bio=some_dude.get('bio'),
@@ -229,6 +230,7 @@ def edit_event(request):
             SomeDude.objects.create(
                 name=some_dude.get('name'),
                 email=some_dude.get('email'),
+                dude_type=some_dude.get('dude_type'),
                 event=event,
                 image=some_dude.get('image'),
                 bio=some_dude.get('bio'),
@@ -302,6 +304,24 @@ def view_dept_events(request):
 @api_view(['GET'])
 @authed()
 def view_all_events(request):
+    data = request.GET
+    dept_id = data.get('dept_id')
+    event_id = data.get('event_id')
+    if event_id:
+        try:
+            event = Event.objects.get(id=event_id)
+            serializer = EventSerializer(event)
+            return Response([serializer.data], status=status.HTTP_200_OK)
+        except Event.DoesNotExist:
+            return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+    if dept_id:
+        try:
+            dept = Department.objects.get(id=dept_id)
+            events = Event.objects.filter(department=dept)
+            serializer = EventSerializer(events, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Department.DoesNotExist:
+            return Response({'message': 'Department with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
     events = Event.objects.all()
     serializer = EventSerializer(events, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
