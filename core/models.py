@@ -135,6 +135,7 @@ class Event(models.Model):
     description = models.TextField(null=True, blank=True)
     form = models.ForeignKey(
         Form, on_delete=models.SET_NULL, null=True, blank=True)
+    rules = models.URLField(max_length=2048, null=True, blank=True)
 
     def __str__(self):
         return self.name

@@ -6,9 +6,27 @@ from .models import Round, SomeDude
 
 
 class RoundSerializer(ModelSerializer):
+
+    start_time = SerializerMethodField()
+    end_time = SerializerMethodField()
+
     class Meta:
         model = Round
-        exclude = ['event']
+        fields = [
+            'id',
+            'name',
+            'description',
+            'start_time',
+            'end_time',
+            'location',
+            'location_link',
+        ]
+
+    def get_start_time(self, obj):
+        return obj.start_time.timestamp() * 1000
+
+    def get_end_time(self, obj):
+        return obj.end_time.timestamp() * 1000
 
 
 class SomeDudeSerializer(ModelSerializer):
@@ -37,6 +55,10 @@ class EventSerializer(ModelSerializer):
     some_dudes = SerializerMethodField()
     messages = SerializerMethodField()
     social_links = SerializerMethodField()
+    start_date = SerializerMethodField()
+    end_date = SerializerMethodField()
+    registration_start_date = SerializerMethodField()
+    registration_end_date = SerializerMethodField()
 
     class Meta:
         model = Event
@@ -65,8 +87,21 @@ class EventSerializer(ModelSerializer):
             'rounds',
             'some_dudes',
             'messages',
-            'social_links'
+            'social_links',
+            'rules'
         ]
+
+    def get_start_date(self, obj):
+        return obj.start_date.timestamp() * 1000
+
+    def get_end_date(self, obj):
+        return obj.end_date.timestamp() * 1000
+
+    def get_registration_start_date(self, obj):
+        return obj.registration_start_date.timestamp() * 1000
+
+    def get_registration_end_date(self, obj):
+        return obj.registration_end_date.timestamp() * 1000
 
     def get_department(self, obj):
         return {

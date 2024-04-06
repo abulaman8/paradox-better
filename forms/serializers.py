@@ -35,15 +35,15 @@ class RadioGroupSerializer(ModelSerializer):
 
 
 class ElementSerializer(ModelSerializer):
-    input = SerializerMethodField()
+    element = SerializerMethodField()
     inputType = SerializerMethodField()
 
     class Meta:
         model = Element
         fields = ['id', 'name', 'block', 'label',
-                  'position', 'input', 'inputType']
+                  'position', 'element', 'inputType']
 
-    def get_input(self, obj):
+    def get_element(self, obj):
         input_type = ContentType.objects.get_for_model(Input)
         text_area_type = ContentType.objects.get_for_model(Textarea)
         check_box_type = ContentType.objects.get_for_model(CheckboxGroup)
@@ -152,6 +152,7 @@ class BlockSerializer(ModelSerializer):
 
 class FormSerializer(ModelSerializer):
     blocks = SerializerMethodField()
+    bg_img = SerializerMethodField()
 
     class Meta:
         model = Form
@@ -164,12 +165,15 @@ class FormSerializer(ModelSerializer):
             'blocks',
             'user',
             'published',
-            'bg_image'
+            'bg_img'
         ]
 
     def get_blocks(self, obj):
         blocks = Block.objects.filter(form=obj).order_by('position').all()
         return BlockSerializer(blocks, many=True).data
+
+    def get_bg_img(self, obj):
+        return obj.bg_image
 
 
 class FormEditSerializer(ModelSerializer):

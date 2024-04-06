@@ -24,7 +24,7 @@ def add_event(request):
     user = request.user
     data = request.data
     dept_id = data.get('dept_id')
-    event_name = data.get('event_name')
+    event_name = data.get('name')
     head_email = data.get('head_email')
     is_team_event = data.get('is_team_event')
     max_team_size = data.get('max_team_size')
@@ -43,6 +43,7 @@ def add_event(request):
         int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc)
     registration_end_date = datetime.fromtimestamp(
         int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc)
+    rules = data.get('rules')
     sponsors = data.get('sponsors')
     rounds = data.get('rounds')
     social_links = data.get('social_links')
@@ -69,7 +70,8 @@ def add_event(request):
             start_date=start_date,
             end_date=end_date,
             registration_start_date=registration_start_date,
-            registration_end_date=registration_end_date
+            registration_end_date=registration_end_date,
+            rules=rules
         )
         for faq in faqs:
             FAQ.objects.create(
@@ -130,8 +132,7 @@ def add_event(request):
 def edit_event(request):
     data = request.data
     event_id = data.get('event_id')
-    event_name = data.get('event_name')
-    head_email = data.get('head_email')
+    event_name = data.get('name')
     is_team_event = data.get('is_team_event')
     max_team_size = data.get('max_team_size')
     min_team_size = data.get('min_team_size')
@@ -149,6 +150,7 @@ def edit_event(request):
         int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc)
     registration_end_date = datetime.fromtimestamp(
         int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc)
+    rules = data.get('rules')
     sponsors = data.get('sponsors')
     rounds = data.get('rounds')
     social_links = data.get('social_links')
@@ -156,9 +158,7 @@ def edit_event(request):
     some_dudes = data.get('some_dudes')
     try:
         event = Event.objects.get(id=event_id)
-        user = User.objects.get(email=head_email)
-        event.name = event_name
-        event.head = user
+        event.name = event_name if event_name else event.name
         event.is_team_event = is_team_event
         event.max_team_size = max_team_size
         event.min_team_size = min_team_size
@@ -171,6 +171,7 @@ def edit_event(request):
         event.end_date = end_date
         event.registration_start_date = registration_start_date
         event.registration_end_date = registration_end_date
+        event.rules = rules
         event.is_approved = False
         event.save()
         FAQ.objects.filter(
@@ -477,7 +478,16 @@ def edit_event_form(request):
         event = Event.objects.get(id=event_id)
         form = event.form
         if not form:
-            return Response({'message': 'Form not found'}, status=status.HTTP_400_BAD_REQUEST)
+            form = Form.objects.create(
+                name=form_data.name,
+                description=form_data.desc,
+                user=request.user,
+                published=False,
+                bg_image=form_data.bg_img
+            )
+            event.form = form
+            event.save()
+            # return Response({'message': 'Form not found'}, status=status.HTTP_400_BAD_REQUEST)
         form.name = form_data.name
         form.description = form_data.desc
         form.bg_image = form_data.bg_img
@@ -781,6 +791,21 @@ def edit_event_form(request):
                     )
 
         serializer = FormSerializer(form)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@authed()
+def view_form(request):
+    data = request.GET
+    event_id = data.get('event_id')
+    try:
+        event = Event.objects.get(id=event_id)
+        if not event.form:
+            return Response({'message': 'Event has no form'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = FormSerializer(event.form)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)

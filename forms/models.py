@@ -9,8 +9,7 @@ class Form(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=128)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    bg_image = models.ImageField(
-        upload_to='form_bg_images/', null=True, blank=True)
+    bg_image = models.URLField(max_length=2048, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
