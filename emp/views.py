@@ -7,7 +7,7 @@ from rest_framework import status
 from core.models import FAQ, Link, Sponsor, Event, Department
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
 from .models import Round, SomeDude
-from .serializers import RoundSerializer, EventSerializer
+from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
 from utils.decorators import has_perms, authed
 from .decorators import has_event_perms
 from datetime import datetime, timezone
@@ -310,7 +310,7 @@ def view_all_events(request):
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
-            serializer = EventSerializer(event)
+            serializer = SimpleEventSerializer(event)
             return Response([serializer.data], status=status.HTTP_200_OK)
         except Event.DoesNotExist:
             return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -318,12 +318,12 @@ def view_all_events(request):
         try:
             dept = Department.objects.get(id=dept_id)
             events = Event.objects.filter(department=dept)
-            serializer = EventSerializer(events, many=True)
+            serializer = SimpleEventSerializer(events, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Department.DoesNotExist:
             return Response({'message': 'Department with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
     events = Event.objects.all()
-    serializer = EventSerializer(events, many=True)
+    serializer = SimpleEventSerializer(events, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
