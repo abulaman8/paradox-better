@@ -7,7 +7,7 @@ from .models import Form, Input, Textarea, CheckboxGroup, Select, RadioGroup, Bl
 class InputSerializer(ModelSerializer):
     class Meta:
         model = Input
-        fields = '__all__'
+        exclude = ['input_type']
 
 
 class TextareaSerializer(ModelSerializer):
@@ -69,7 +69,8 @@ class ElementSerializer(ModelSerializer):
         radio_type = ContentType.objects.get_for_model(CheckboxGroup)
         content_type = obj.content_type
         if content_type == input_type:
-            return obj.element_type
+            input = obj.content_object
+            return input.input_type
         elif content_type == text_area_type:
             return "textarea"
         elif content_type == check_box_type:
@@ -153,13 +154,14 @@ class BlockSerializer(ModelSerializer):
 class FormSerializer(ModelSerializer):
     blocks = SerializerMethodField()
     bg_img = SerializerMethodField()
+    desc = SerializerMethodField()
 
     class Meta:
         model = Form
         fields = [
             'id',
             'name',
-            'description',
+            'desc',
             'created_at',
             'updated_at',
             'blocks',
@@ -174,6 +176,9 @@ class FormSerializer(ModelSerializer):
 
     def get_bg_img(self, obj):
         return obj.bg_image
+
+    def get_desc(self, obj):
+        return obj.description
 
 
 class FormEditSerializer(ModelSerializer):

@@ -70,6 +70,7 @@ class Input(models.Model):
         ('password', 'Password'),
         ('date', 'Date'),
         ('time', 'Time'),
+        ('datetime-local', 'Datetime Local'),
         ('file', 'File'),
         ('color', 'Color'),
         ('tel', 'Tel'),

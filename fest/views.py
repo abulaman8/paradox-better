@@ -210,6 +210,26 @@ def accomodation_registration(request):
             accom.outside_india = outside_india
             accom.passport = passport
             accom.save()
+            try:
+                with open('accommodation_2.html', 'r') as f:
+                    accom_reg_template = f.read()
+
+                headers = {'Reply-To': "support@iitmparadox.org"}
+                template = Template(accom_reg_template)
+                context = Context({
+
+                })
+                subject = "Accommodation Registration - Paradox'24"
+                from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"
+                to = student.email
+                rendered = template.render(context)
+                email = EmailMultiAlternatives(
+                    subject, rendered, from_email, [to], headers=headers)
+                email.attach_alternative(rendered, "text/html")
+                email.send()
+            except Exception as e:
+                print(e)
+                pass
             return Response({
                 'message': 'Accomodation registration updated'
             }, status=status.HTTP_200_OK)

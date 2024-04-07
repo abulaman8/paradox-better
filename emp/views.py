@@ -450,6 +450,8 @@ def create_event_form(request):
     event_id = data.get('event_id')
     try:
         event = Event.objects.get(id=event_id)
+        if event.form:
+            return Response({'message': 'Event already has a form'}, status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             form = Form.objects.create(
                 name=form_name,

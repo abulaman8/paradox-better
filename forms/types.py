@@ -58,8 +58,8 @@ class ElementType:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any], input_type: str = "input") -> Union[InputType, SelectType, RadioGroupType, CheckboxGroupType]:
-        print(data)
-        print(f"input type: {input_type}")
+        # print(data)
+        # print(f"input type: {input_type}")
         if input_type == "select":
             element = SelectType(**data)
         elif input_type == "radio":
