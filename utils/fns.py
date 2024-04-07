@@ -206,104 +206,66 @@ def get_fin_permissions(obj, user_perms):
 
 
 def get_emp_permissions(obj, user_perms):
-    view_vouchers = Permission.objects.filter(codename='view_voucher')
-    view_bills = Permission.objects.filter(codename='view_bill')
-    edit_bills = Permission.objects.filter(
-        codename='change_bill')
-    first_level_bill_approve = Permission.objects.filter(
-        codename='first_level_bill_approval')
-    first_level_bill_reject = Permission.objects.filter(
-        codename='first_level_bill_rejection')
-    final_level_bill_approve = Permission.objects.filter(
-        codename='final_level_bill_approval')
-    final_level_bill_reject = Permission.objects.filter(
-        codename='final_level_bill_rejection')
-    assign_dept_budget = Permission.objects.filter(
-        codename='assign_dept_budget')
-    deassign_dept_budget = Permission.objects.filter(
-        codename='deassign_dept_budget')
-    assign_event_budget = Permission.objects.filter(
-        codename='assign_event_budget')
-    deassign_event_budget = Permission.objects.filter(
-        codename='deassign_event_budget')
-    view_account = Permission.objects.filter(
-        codename='view_account')
+    change_event = Permission.objects.filter(
+        codename='change_event')
+    add_event = Permission.objects.filter(codename='add_event')
+    delete_event = Permission.objects.filter(codename='delete_event')
+    approve_event = Permission.objects.filter(
+        codename='approve_event')
     r = {}
-    r['user_bills'] = {
+    r['all'] = {
         'view': True,
-        'edit': True,
+        'edit': False,
+        'delete': False,
+        'approve': False,
+        'add': False
     }
-    r['voucher'] = {
-        'view': False,
+    r['department'] = {
+        'view': True,
+        'edit': False,
+        'delete': False,
+        'approve': False,
+        'add': False
     }
-    r['department_bills'] = {}
-    r['all_bills'] = {}
-    r['all_budget'] = {}
-    r['department_budget'] = {}
-    r['department_account'] = {}
-    r['all_account'] = {}
-    r['all_bills']['view'] = False
-    r['all_bills']['first_approve'] = False
-    r['all_bills']['final_approve'] = False
-    r['all_bills']['first_reject'] = False
-    r['all_bills']['final_reject'] = False
-    r['all_budget']['allocate'] = False
-    r['all_budget']['deallocate'] = False
-    r['all_account']['view'] = False
-    r['department_bills']['view'] = False
-    r['department_bills']['edit'] = False
-    r['department_budget']['allocate'] = False
-    r['department_budget']['deallocate'] = False
-    r['department_account']['view'] = False
+    r['event'] = {
+        'view': True,
+        'edit': False,
+        'delete': False,
+        'approve': False,
+        'add': False
+    }
+
     groups = user_perms['groups']
     departments = user_perms['departments']
-    sub_departments = user_perms['sub_departments']
     events = user_perms['events']
     for group in groups:
         # print(groups[group])
-        if view_vouchers.first() in groups[group]:
-            r['voucher']['view'] = True
-        if view_bills.first() in groups[group]:
-            r['all_bills']['view'] = True
-        if first_level_bill_approve.first() in groups[group]:
-            r['all_bills']['first_approve'] = True
-        if final_level_bill_approve.first() in groups[group]:
-            r['all_bills']['final_approve'] = True
-        if first_level_bill_reject.first() in groups[group]:
-            r['all_bills']['first_reject'] = True
-        if final_level_bill_reject.first() in groups[group]:
-            r['all_bills']['final_reject'] = True
-        if assign_dept_budget.first() in groups[group]:
-            r['all_budget']['allocate'] = True
-        if deassign_dept_budget.first() in groups[group]:
-            r['all_budget']['deallocate'] = True
-        if view_account.first() in groups[group]:
-            r['all_account']['view'] = True
+        if change_event.first() in groups[group]:
+            r['all']['edit'] = True
+        if add_event.first() in groups[group]:
+            r['all']['add'] = True
+        if delete_event.first() in groups[group]:
+            r['all']['delete'] = True
+        if approve_event.first() in groups[group]:
+            r['all']['approve'] = True
     for dept in departments:
-        if view_bills.first() in departments[dept]:
-            r['department_bills']['view'] = True
-        if edit_bills.first() in departments[dept]:
-            r['department_bills']['edit'] = True
-        if assign_event_budget.first() in departments[dept]:
-            r['department_budget']['allocate'] = True
-        if deassign_event_budget.first() in departments[dept]:
-            r['department_budget']['deallocate'] = True
-        if view_account.first() in departments[dept]:
-            r['department_account']['view'] = True
-    for sub_dept in sub_departments:
-        if view_bills.first() in sub_departments[sub_dept]:
-            r['department_bills']['view'] = True
-        if edit_bills.first() in sub_departments[sub_dept]:
-            r['department_bills']['edit'] = True
-        if view_account.first() in sub_departments[sub_dept]:
-            r['department_account']['view'] = True
+        if change_event.first() in departments[dept]:
+            r['department']['edit'] = True
+        if add_event.first() in departments[dept]:
+            r['department']['add'] = True
+        if delete_event.first() in departments[dept]:
+            r['department']['delete'] = True
+        if approve_event.first() in departments[dept]:
+            r['department']['approve'] = True
     for event in events:
-        if view_bills.first() in events[event]:
-            r['department_bills']['view'] = True
-        if edit_bills.first() in events[event]:
-            r['department_bills']['edit'] = True
-        if view_account.first() in events[event]:
-            r['department_account']['view'] = True
+        if change_event.first() in events[event]:
+            r['event']['edit'] = True
+        if add_event.first() in events[event]:
+            r['event']['add'] = True
+        if delete_event.first() in events[event]:
+            r['event']['delete'] = True
+        if approve_event.first() in events[event]:
+            r['event']['approve'] = True
 
     # get all group perms of user
     # user = obj

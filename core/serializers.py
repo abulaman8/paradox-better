@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 from django.db.models import Q
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import Department, Role, ApprovalStatus, SubDepartment, Event, Sponsor, FAQ, Link, Action
-from utils.fns import get_fin_permissions, get_user_permissions
+from utils.fns import get_emp_permissions, get_fin_permissions, get_user_permissions
 
 
 class PermissionSerializer(ModelSerializer):
@@ -237,6 +237,7 @@ class UserSerializer(ModelSerializer):
         final = {}
         final['frb'] = r
         final['finance'] = get_fin_permissions(obj, user_perms)
+        # final['emp'] = get_emp_permissions(obj, user_perms)
         return final
 
 

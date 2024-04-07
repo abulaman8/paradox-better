@@ -37,11 +37,15 @@ class RadioGroupSerializer(ModelSerializer):
 class ElementSerializer(ModelSerializer):
     element = SerializerMethodField()
     inputType = SerializerMethodField()
+    block_id = SerializerMethodField()
 
     class Meta:
         model = Element
-        fields = ['id', 'name', 'block', 'label',
+        fields = ['id', 'name', 'block_id', 'label',
                   'position', 'element', 'inputType']
+
+    def get_block_id(self, obj):
+        return obj.block.id
 
     def get_element(self, obj):
         input_type = ContentType.objects.get_for_model(Input)

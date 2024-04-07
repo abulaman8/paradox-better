@@ -52,6 +52,7 @@ class Element(models.Model):
     block = models.ForeignKey(Block, on_delete=models.CASCADE)
     label = models.CharField(max_length=128)
     element_type = models.CharField(max_length=128)
+    show = models.BooleanField(default=False)
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
