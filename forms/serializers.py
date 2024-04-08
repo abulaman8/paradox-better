@@ -5,33 +5,52 @@ from .models import Form, Input, Textarea, CheckboxGroup, Select, RadioGroup, Bl
 
 
 class InputSerializer(ModelSerializer):
+    maxLength = SerializerMethodField()
+    minLength = SerializerMethodField()
+
     class Meta:
         model = Input
-        exclude = ['input_type']
+        fields = [
+            'id',
+            'value',
+            'required',
+            'placeholder',
+            'autocomplete',
+            'max',
+            'min',
+            'maxLength',
+            'minLength',
+        ]
+
+    def get_maxLength(self, obj):
+        return obj.max_length
+
+    def get_minLength(self, obj):
+        return obj.min_length
 
 
 class TextareaSerializer(ModelSerializer):
     class Meta:
         model = Textarea
-        fields = '__all__'
+        exclude = ['uuid', 'created_at', 'updated_at']
 
 
 class CheckboxGroupSerializer(ModelSerializer):
     class Meta:
         model = CheckboxGroup
-        fields = '__all__'
+        exclude = ['uuid', 'created_at', 'updated_at']
 
 
 class SelectSerializer(ModelSerializer):
     class Meta:
         model = Select
-        fields = '__all__'
+        exclude = ['uuid', 'created_at', 'updated_at']
 
 
 class RadioGroupSerializer(ModelSerializer):
     class Meta:
         model = RadioGroup
-        fields = '__all__'
+        exclude = ['uuid', 'created_at', 'updated_at']
 
 
 class ElementSerializer(ModelSerializer):
@@ -51,8 +70,8 @@ class ElementSerializer(ModelSerializer):
         input_type = ContentType.objects.get_for_model(Input)
         text_area_type = ContentType.objects.get_for_model(Textarea)
         check_box_type = ContentType.objects.get_for_model(CheckboxGroup)
-        select_type = ContentType.objects.get_for_model(CheckboxGroup)
-        radio_type = ContentType.objects.get_for_model(CheckboxGroup)
+        select_type = ContentType.objects.get_for_model(Select)
+        radio_type = ContentType.objects.get_for_model(RadioGroup)
         content_type = obj.content_type
         if content_type == input_type:
             return InputSerializer(obj.content_object).data
@@ -69,9 +88,10 @@ class ElementSerializer(ModelSerializer):
         input_type = ContentType.objects.get_for_model(Input)
         text_area_type = ContentType.objects.get_for_model(Textarea)
         check_box_type = ContentType.objects.get_for_model(CheckboxGroup)
-        select_type = ContentType.objects.get_for_model(CheckboxGroup)
-        radio_type = ContentType.objects.get_for_model(CheckboxGroup)
+        select_type = ContentType.objects.get_for_model(Select)
+        radio_type = ContentType.objects.get_for_model(RadioGroup)
         content_type = obj.content_type
+        print(content_type)
         if content_type == input_type:
             input = obj.content_object
             return input.input_type
@@ -145,8 +165,6 @@ class BlockSerializer(ModelSerializer):
             'form',
             'title',
             'position',
-            'created_at',
-            'updated_at',
             'elements'
         ]
 
@@ -166,8 +184,6 @@ class FormSerializer(ModelSerializer):
             'id',
             'name',
             'desc',
-            'created_at',
-            'updated_at',
             'blocks',
             'user',
             'published',

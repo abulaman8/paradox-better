@@ -92,16 +92,16 @@ class EventSerializer(ModelSerializer):
         ]
 
     def get_start_date(self, obj):
-        return obj.start_date.timestamp() * 1000
+        return obj.start_date.timestamp() * 1000 if obj.start_date else None
 
     def get_end_date(self, obj):
-        return obj.end_date.timestamp() * 1000
+        return obj.end_date.timestamp() * 1000 if obj.end_date else None
 
     def get_registration_start_date(self, obj):
-        return obj.registration_start_date.timestamp() * 1000
+        return obj.registration_start_date.timestamp() * 1000 if obj.registration_start_date else None
 
     def get_registration_end_date(self, obj):
-        return obj.registration_end_date.timestamp() * 1000
+        return obj.registration_end_date.timestamp() * 1000 if obj.registration_end_date else None
 
     def get_department(self, obj):
         return {

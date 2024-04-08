@@ -4,8 +4,8 @@ from django.db import models
 from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-
-from forms.models import Form
+import uuid
+from forms.models import Form, Block, Element, Input
 
 
 class Blacklist(models.Model):
@@ -125,8 +125,8 @@ class Event(models.Model):
     max_team_size = models.IntegerField(null=True, blank=True)
     min_team_size = models.IntegerField(null=True, blank=True)
     header_image = models.URLField(max_length=2048, null=True, blank=True)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     registration_start_date = models.DateTimeField(null=True, blank=True)
     registration_end_date = models.DateTimeField(null=True, blank=True)
     fee = models.IntegerField(default=0)
@@ -337,6 +337,38 @@ def create_event_account(sender, instance, created, **kwargs):
             codename__in=head_perm_codes).all()
         head_role.permissions.add(*head_perms)
         head_role.save()
+        form = Form.objects.create(
+            name="Unknown",
+            description="No Description",
+            bg_image="",
+            user=instance.department.core,
+        )
+        block = Block.objects.create(
+            title="Section 1",
+            uuid=uuid.uuid4(),
+            position=1,
+            form=form
+        )
+        input = Input.objects.create(
+            uuid=uuid.uuid4(),
+            value="",
+            required=False,
+            placeholder="",
+            input_type="text",
+            autocomplete=True
+        )
+        element = Element.objects.create(
+            name=uuid.uuid4(),
+            label="This is an input",
+            position=1,
+            block=block,
+            uuid=uuid.uuid4(),
+            element_type="input",
+            content_type=ContentType.objects.get_for_model(Input),
+            object_id=input.id
+        )
+        instance.form = form
+        instance.save()
 
 
 @receiver(pre_delete, sender=Department)

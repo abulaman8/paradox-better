@@ -81,12 +81,13 @@ class BlockType:
 
 
 class FormType:
-    def __init__(self, id: str, bg_img: str, name: str, desc: str, blocks: List[BlockType]):
+    def __init__(self, id: str, bg_img: str, name: str, desc: str, blocks: List[BlockType], published: bool = False):
         self.id = id
         self.bg_img = bg_img
         self.name = name
         self.desc = desc
         self.blocks = blocks
+        self.published = published
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FormType":

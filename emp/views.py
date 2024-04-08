@@ -25,99 +25,17 @@ def add_event(request):
     data = request.data
     dept_id = data.get('dept_id')
     event_name = data.get('name')
-    head_email = data.get('head_email')
-    is_team_event = data.get('is_team_event')
-    max_team_size = data.get('max_team_size')
-    min_team_size = data.get('min_team_size')
-    max_participants = data.get('max_participants')
-    fee = data.get('fee')
-    header_image = data.get('header_image')
-    description = data.get('description')
-    location = data.get('location')
-    location_link = data.get('location_link')
-    start_date = datetime.fromtimestamp(
-        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc)
-    end_date = datetime.fromtimestamp(
-        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc)
-    registration_start_date = datetime.fromtimestamp(
-        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc)
-    registration_end_date = datetime.fromtimestamp(
-        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc)
-    rules = data.get('rules')
-    sponsors = data.get('sponsors')
-    rounds = data.get('rounds')
-    social_links = data.get('social_links')
-    faqs = data.get('faqs')
-    some_dudes = data.get('some_dudes')
+    head_email = data.get('head')
     try:
-        user = User.objects.get(email=head_email)
         dept = Department.objects.get(id=dept_id)
         if not dept.event_based:
             return Response({'message': 'Department is not event based'}, status=status.HTTP_400_BAD_REQUEST)
+        head = User.objects.get(email=head_email)
         event = Event.objects.create(
             name=event_name,
-            head=user,
             department=dept,
-            header_image=header_image,
-            is_team_event=is_team_event,
-            max_team_size=max_team_size,
-            min_team_size=min_team_size,
-            max_participants=max_participants,
-            fee=fee if fee else 0,
-            description=description,
-            location=location,
-            location_link=location_link,
-            start_date=start_date,
-            end_date=end_date,
-            registration_start_date=registration_start_date,
-            registration_end_date=registration_end_date,
-            rules=rules
+            head=head
         )
-        for faq in faqs:
-            FAQ.objects.create(
-                question=faq.get('question'),
-                answer=faq.get('answer'),
-                content_type=ContentType.objects.get_for_model(Event),
-                object_id=event.id
-            )
-        for link in social_links:
-            Link.objects.create(
-                name=link.get('name'),
-                content_type=ContentType.objects.get_for_model(Event),
-                object_id=event.id,
-                url=link.get('url')
-            )
-        for round in rounds:
-            Round.objects.create(
-                event=event,
-                name=round.get('name'),
-                start_time=datetime.fromtimestamp(
-                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc),
-                end_time=datetime.fromtimestamp(
-                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc),
-                location=round.get('location'),
-                location_link=round.get('location_link'),
-                description=round.get('description')
-            )
-        for sponsor in sponsors:
-            Sponsor.objects.create(
-                name=sponsor.get('name'),
-                title=sponsor.get('title'),
-                logo=sponsor.get('logo'),
-                url=sponsor.get('url'),
-                content_type=ContentType.objects.get_for_model(Event),
-                object_id=event.id
-            )
-        for some_dude in some_dudes:
-            SomeDude.objects.create(
-                name=some_dude.get('name'),
-                email=some_dude.get('email'),
-                dude_type=some_dude.get('dude_type'),
-                event=event,
-                image=some_dude.get('image'),
-                bio=some_dude.get('bio'),
-
-            )
 
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
