@@ -258,6 +258,7 @@ def create_department_account(sender, instance, created, **kwargs):
             "change_role",
             "view_role",
             "manage_member",
+            "manage_event_member",
             "view_account",
             "add_event",
             "change_event",

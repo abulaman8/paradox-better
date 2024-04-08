@@ -461,15 +461,16 @@ def edit_event_form(request):
                 bg_image=form_data.bg_img
             )
             event.form = form
-            Action.objects.create(
-                user=request.user,
-                message="form edited",
-                approval_status=ApprovalStatus.objects.get(name="pending"),
-                content_type=ContentType.objects.get_for_model(Event),
-                object_id=event.id
-            )
+            event.is_approved = False
             event.save()
             # return Response({'message': 'Form not found'}, status=status.HTTP_400_BAD_REQUEST)
+        Action.objects.create(
+            user=request.user,
+            message="form edited",
+            approval_status=ApprovalStatus.objects.get(name="pending"),
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=event.id
+        )
         form.name = form_data.name
         form.description = form_data.desc
         form.bg_image = form_data.bg_img
