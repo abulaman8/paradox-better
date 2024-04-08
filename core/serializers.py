@@ -237,7 +237,7 @@ class UserSerializer(ModelSerializer):
         final = {}
         final['frb'] = r
         final['finance'] = get_fin_permissions(obj, user_perms)
-        # final['emp'] = get_emp_permissions(obj, user_perms)
+        final['emp'] = get_emp_permissions(obj, user_perms)
         return final
 
 

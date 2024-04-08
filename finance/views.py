@@ -1,4 +1,6 @@
 from django.db import transaction
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -511,6 +513,16 @@ def first_level_approval(request, bill_id):
         bill.approval_status = ApprovalStatus.objects.get(
             name='first_level_approved')
         bill.save()
+        try:
+            from_email = f"Finance & Requirements <{settings.EMAIL_HOST_USER}>"
+            to = bill.author.email
+            subject = "Bill approved"
+            text_content = f"Dear {bill.author.username},\n\nYour bill {bill.title} with bill number {bill.bill_number} has been approved at the first level, and is pending one more level of approval. The same will be reflected on the finance portal.\n\n Regards,\n Finance and requirements."
+            mail = EmailMultiAlternatives(
+                subject, text_content, from_email, [to])
+            mail.send()
+        except Exception as e:
+            print(e)
         serializer = BillSerializer(bill)
         return Response({
             'message': 'Bill approved successfully',
@@ -533,7 +545,17 @@ def final_level_approval(request, bill_id):
         bill.approval_status = ApprovalStatus.objects.get(
             name='final_level_approved')
         bill.save()
-        generate_voucher(bill.id)
+        try:
+            from_email = f"Finance & Requirements <{settings.EMAIL_HOST_USER}>"
+            to = bill.author.email
+            subject = "Bill approved"
+            text_content = f"Dear {bill.author.username},\n\nYour bill {bill.title} with bill number {bill.bill_number} has been approved at the final level. The same will be reflected on the finance portal.\n\n Regards,\n Finance and requirements."
+            mail = EmailMultiAlternatives(
+                subject, text_content, from_email, [to])
+            mail.send()
+        except Exception as e:
+            print(e)
+        # generate_voucher(bill.id)
         serializer = BillSerializer(bill)
         return Response({
             'message': 'Bill approved successfully',
@@ -562,6 +584,14 @@ def first_level_rejection(request, bill_id):
         bill.approval_status = ApprovalStatus.objects.get(
             name='first_level_rejected')
         bill.save()
+        try:
+            from_email = f"Finance & Requirements <{settings.EMAIL_HOST_USER}>"
+            to = bill.author.email
+            subject = "Bill rejected"
+            text_content = f"Dear {bill.author.username},\n\nYour bill {bill.title} with bill number {bill.bill_number} has been rejected at the first level for the following reason\n\n {message}.\n\n. You can reupload a new bill The same will be reflected on the finance portal.\n\n Regards,\n Finance and requirements."
+
+        except Exception as e:
+            print(e)
         serializer = BillSerializer(bill)
         return Response({
             'message': 'Bill rejected successfully',

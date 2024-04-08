@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+from django.contrib.auth.models import Permission
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,7 +13,7 @@ from .models import Round, SomeDude
 from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
 from utils.decorators import has_perms, authed
 from .decorators import has_event_perms
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from forms.models import Element, Form, Block, Input, Select, RadioGroup, CheckboxGroup
 from forms.serializers import FormSerializer
@@ -34,8 +37,15 @@ def add_event(request):
         event = Event.objects.create(
             name=event_name,
             department=dept,
-            head=head
+            head=head,
+            created_by=user
         )
+        req_codenames = ["view_requirement", "add_requirement",
+                         "view_bill", "add_bill", "change_event"]
+        permissions = Permission.objects.filter(
+            codename__in=req_codenames).all()
+        event.permissions.add(*permissions)
+        event.save()
 
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -43,6 +53,22 @@ def add_event(request):
         return Response({'message': 'User with the provided email not found'}, status=status.HTTP_400_BAD_REQUEST)
     except Department.DoesNotExist:
         return Response({'message': 'Department with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@has_event_perms(['manage_event_member'])
+def add_event_members(request):
+    data = request.data
+    event_id = data.get('event_id')
+    members = data.get('members')
+    try:
+        event = Event.objects.get(id=event_id)
+        users = User.objects.filter(email__in=members).all()
+        event.members.add(*users)
+        event.save()
+        return Response({'message': 'Members added successfully'}, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['PUT'])
@@ -61,13 +87,13 @@ def edit_event(request):
     location = data.get('location')
     location_link = data.get('location_link')
     start_date = datetime.fromtimestamp(
-        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc)
+        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
     end_date = datetime.fromtimestamp(
-        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc)
+        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
     registration_start_date = datetime.fromtimestamp(
-        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc)
+        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
     registration_end_date = datetime.fromtimestamp(
-        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc)
+        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
     rules = data.get('rules')
     sponsors = data.get('sponsors')
     rounds = data.get('rounds')
@@ -91,6 +117,13 @@ def edit_event(request):
         event.registration_end_date = registration_end_date
         event.rules = rules
         event.is_approved = False
+        Action.objects.create(
+            user=request.user,
+            approval_status=ApprovalStatus.objects.get(name="pending"),
+            message="event edited",
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=event.id
+        )
         event.save()
         FAQ.objects.filter(
             content_type=ContentType.objects.get_for_model(Event),
@@ -129,9 +162,9 @@ def edit_event(request):
                 event=event,
                 name=round.get('name'),
                 start_time=datetime.fromtimestamp(
-                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc),
+                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30),
                 end_time=datetime.fromtimestamp(
-                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc),
+                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30),
                 location=round.get('location'),
                 location_link=round.get('location_link'),
                 description=round.get('description')
@@ -194,6 +227,16 @@ def approve_event(request):
                     name="final_level_approved"),
                 message="Event approved"
             )
+            try:
+                from_email = f"Event Management <{settings.EMAIL_HOST_USER}>"
+                to = event.head.email
+                subject = 'Event Approved'
+                text_content = f"Dear {event.head.first_name},\n\nYour event {event.name} has been approved. You can view the event on the website.\n Please note that any changes you make hereafter will have to go through approval again, and will be inactive until approved. \n\n Regards,\n Event Management."
+                mail = EmailMultiAlternatives(
+                    subject, text_content, from_email, [to])
+                mail.send()
+            except Exception as e:
+                print(e)
             serializer = EventSerializer(event)
             return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
@@ -221,6 +264,16 @@ def disapprove_event(request):
                     name="final_level_rejected"),
                 message=message
             )
+            try:
+                from_email = f"Event Management <{settings.EMAIL_HOST_USER}>"
+                to = event.head.email
+                subject = 'Event Rejected'
+                text_content = f"Dear {event.head.first_name},\n\nYour event {event.name} has been rejected for the following reason:\n\n {message}.\n\n You can still view the event on the portal and make the necessary changes and wait for approval again. Until it is approved you event will remain inactive. If you think this was a mistake, you can contact your department core for further clarification\n\n Regards,\n Event Management."
+                mail = EmailMultiAlternatives(
+                    subject, text_content, from_email, [to])
+                mail.send()
+            except Exception as e:
+                print(e)
             serializer = EventSerializer(event)
             return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
@@ -247,6 +300,8 @@ def view_all_events(request):
     data = request.GET
     dept_id = data.get('dept_id')
     event_id = data.get('event_id')
+    if not event_id and not dept_id:
+        return Response({'message': 'Provide either event_id or dept_id'}, status=status.HTTP_400_BAD_REQUEST)
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
@@ -406,6 +461,13 @@ def edit_event_form(request):
                 bg_image=form_data.bg_img
             )
             event.form = form
+            Action.objects.create(
+                user=request.user,
+                message="form edited",
+                approval_status=ApprovalStatus.objects.get(name="pending"),
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id
+            )
             event.save()
             # return Response({'message': 'Form not found'}, status=status.HTTP_400_BAD_REQUEST)
         form.name = form_data.name

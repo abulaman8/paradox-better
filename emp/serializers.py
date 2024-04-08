@@ -37,18 +37,53 @@ class SomeDudeSerializer(ModelSerializer):
 
 class SimpleEventSerializer(ModelSerializer):
     head = SerializerMethodField()
+    members = SerializerMethodField()
+    status = SerializerMethodField()
+    messages = SerializerMethodField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'head']
+        fields = ['id', 'name', 'head', 'members', 'status', 'messages']
 
     def get_head(self, obj):
         return obj.head.email
+
+    def get_messages(self, obj):
+        messages = Action.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=obj.id
+        ).all()
+        return ActionSerializer(messages, many=True).data
+
+    def get_status(self, obj):
+        action = Action.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=obj.id
+        ).first()
+        if action and action.approval_status.name == "final_level_rejected":
+            return "rejected"
+        elif action and action.approval_status.name == "final_level_approved":
+            return "approved"
+        else:
+            return "pending"
+
+    def get_members(self, obj):
+        members = obj.members.all()
+        r = []
+        for m in members:
+            r.append({
+                "id": m.id,
+                "name": f"{m.first_name} {m.last_name}",
+                "email": m.email
+            })
+        return r
 
 
 class EventSerializer(ModelSerializer):
     department = SerializerMethodField()
     head = SerializerMethodField()
+    members = SerializerMethodField()
+    status = SerializerMethodField()
     sponsors = SerializerMethodField()
     faqs = SerializerMethodField()
     rounds = SerializerMethodField()
@@ -81,6 +116,8 @@ class EventSerializer(ModelSerializer):
             'max_participants',
             'fee',
             'head',
+            'members',
+            'status',
             'department',
             'sponsors',
             'faqs',
@@ -151,3 +188,26 @@ class EventSerializer(ModelSerializer):
             object_id=obj.id
         ).all()
         return ActionSerializer(messages, many=True).data
+
+    def get_status(self, obj):
+        action = Action.objects.filter(
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=obj.id
+        ).first()
+        if action and action.approval_status.name == "final_level_rejected":
+            return "rejected"
+        elif action and action.approval_status.name == "final_level_approved":
+            return "approved"
+        else:
+            return "pending"
+
+    def get_members(self, obj):
+        members = obj.members.all()
+        r = []
+        for m in members:
+            r.append({
+                "id": m.id,
+                "name": f"{m.first_name} {m.last_name}",
+                "email": m.email
+            })
+        return r

@@ -113,5 +113,8 @@ class Command(BaseCommand):
             name='Can manage members of the department',
             content_type=department_type
         )
+        Permission.objects.get_or_create(
+            codename='manage_event_member'
+        )
 
         self.stdout.write(self.style.SUCCESS('Database has been prepared.'))

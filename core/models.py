@@ -115,6 +115,8 @@ class Event(models.Model):
                              null=True, blank=True, related_name='head_events')
     members = models.ManyToManyField(
         User, related_name='member_events', blank=True)
+    created_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='created_events')
     account = models.OneToOneField(
         Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='event')
     permissions = models.ManyToManyField(Permission, blank=True)
@@ -316,7 +318,8 @@ def create_event_account(sender, instance, created, **kwargs):
         instance.account = account
 
         head = instance.head
-        req_codenames = ["view_requirement", "add_requirement"]
+        req_codenames = ["view_requirement", "add_requirement",
+                         "view_bill", "add_bill", "change_event"]
         permissions = Permission.objects.filter(
             codename__in=req_codenames).all()
         instance.permissions.add(*permissions)
@@ -332,7 +335,7 @@ def create_event_account(sender, instance, created, **kwargs):
             name="head", content_type=ContentType.objects.get_for_model(Event), object_id=instance.id)
         head_role.users.add(head)
         head_perm_codes = ["change_role", "view_role",
-                           "manage_member", "change_event", "view_event"]
+                           "manage_event_member", "change_event", "view_event"]
         head_perms = Permission.objects.filter(
             codename__in=head_perm_codes).all()
         head_role.permissions.add(*head_perms)

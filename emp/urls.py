@@ -10,6 +10,7 @@ urlpatterns = [
     path('events/approve/', views.approve_event, name='approve_event'),
     path('events/reject/', views.disapprove_event, name='reject_event'),
     path('events/delete/', views.delete_event, name='delete_event'),
+    path('events/members/add/', views.add_event_members, name='add_event_members'),
     path('rounds/add/', views.add_round, name='add_round'),
     path('rounds/edit/', views.edit_round, name='edit_round'),
     path('rounds/delete/', views.delete_round, name='delete_round'),
