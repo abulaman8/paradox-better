@@ -814,7 +814,7 @@ def view_event_reg_data(request):
             d['user']['id'] = user.id  # type: ignore
             d['user']['name'] = f"{user.first_name} {user.last_name}"
             d['user']['email'] = user.email
-            d['data'] = reg.data
+            d['data'] = [reg.data[key] for key in reg.data.keys()]
             data.append(d)
         return Response(data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
