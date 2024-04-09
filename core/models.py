@@ -267,6 +267,7 @@ def create_department_account(sender, instance, created, **kwargs):
             "change_round",
             "delete_round",
             "approve_event",
+            "view_event_reg_data",
         ]
         core_req_perms = Permission.objects.filter(
             codename__in=core_req_perm_codes).all()

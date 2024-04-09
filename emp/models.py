@@ -1,5 +1,6 @@
 from django.db import models
-from core.models import Event
+from django.contrib.auth.models import User
+from core.models import Event, Student
 
 
 class Round(models.Model):
@@ -37,3 +38,15 @@ class SomeDude(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RegData(models.Model):
+    id = models.AutoField(primary_key=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    data = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.event.name + " - " + self.student.email

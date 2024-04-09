@@ -17,5 +17,7 @@ urlpatterns = [
     path('forms/create/', views.create_event_form, name='create_event_form'),
     path('forms/edit/', views.edit_event_form, name='edit_event_form'),
     path('forms/', views.view_form, name='view_form'),
+    path('reg_data/', views.view_event_reg_data, name='view_event_reg_data'),
+    path('reg_data/csv/', views.get_csv_data, name='get_csv_data'),
 
 ]

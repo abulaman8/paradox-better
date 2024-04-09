@@ -114,7 +114,14 @@ class Command(BaseCommand):
             content_type=department_type
         )
         Permission.objects.get_or_create(
-            codename='manage_event_member'
+            codename='manage_event_member',
+            name='Can manage members of the event',
+            content_type=event_type
+        )
+        Permission.objects.get_or_create(
+            codename='view_event_reg_data',
+            name='Can view registration data of the event',
+            content_type=event_type
         )
 
         self.stdout.write(self.style.SUCCESS('Database has been prepared.'))

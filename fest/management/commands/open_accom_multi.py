@@ -36,14 +36,14 @@ class Command(BaseCommand):
     help = 'create accommodation registration for students in emails and set payment_status to True'
 
     def handle(self, *args, **options):
-        with open('emails2', 'r') as f:
+        with open('emails', 'r') as f:
             emails = f.read().splitlines()
         # emails = [
         #     '21f3002911@ds.study.iitm.ac.in',
         #     '21f1000506@ds.study.iitm.ac.in',
         #     '23f3000516@ds.study.iitm.ac.in',
         # ]
-        print(emails)
+        print(len(emails))
         input("Press Enter to continue...")
 
         pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())

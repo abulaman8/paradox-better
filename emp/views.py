@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
@@ -9,12 +10,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
-from .models import Round, SomeDude
+from .models import RegData, Round, SomeDude
 from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
 from utils.decorators import has_perms, authed
 from .decorators import has_event_perms
 from datetime import datetime, timezone, timedelta
-
+import csv
 from forms.models import Element, Form, Block, Input, Select, RadioGroup, CheckboxGroup
 from forms.serializers import FormSerializer
 from forms.serializers import FormSerializer
@@ -790,5 +791,74 @@ def view_form(request):
             return Response({'message': 'Event has no form'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = FormSerializer(event.form)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@has_event_perms(['view_event_reg_data'])
+def view_event_reg_data(request):
+    data = request.GET
+    event_id = data.get('event_id')
+    try:
+        event = Event.objects.get(id=event_id)
+        data = []
+        reg_data = RegData.objects.prefetch_related(
+            'student').filter(event=event).all()
+        for reg in reg_data:
+            user = User.objects.filter(email=reg.student.email).first()
+            if not user:
+                continue
+            d = {}
+            d['user'] = {}
+            d['user']['id'] = user.id  # type: ignore
+            d['user']['name'] = f"{user.first_name} {user.last_name}"
+            d['user']['email'] = user.email
+            d['data'] = reg.data
+            data.append(d)
+        return Response(data, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@has_event_perms(['view_event_reg_data'])
+def get_csv_data(request):
+    data = request.GET
+    event_id = data.get('event_id')
+    try:
+        event = Event.objects.get(id=event_id)
+        data = []
+        reg_data = RegData.objects.prefetch_related(
+            'student').filter(event=event).all()
+        for reg in reg_data:
+            user = User.objects.filter(email=reg.student.email).first()
+            if not user:
+                continue
+            d = {}
+            d['user'] = {}
+            d['user']['name'] = f"{user.first_name} {user.last_name}"
+            d['user']['email'] = user.email
+            d['data'] = reg.data
+            data.append(d)
+        cols = ['name', 'email']
+        sample = data[0]
+        for key in sample["data"]:
+            cols.append(sample["data"][key]["label"])
+        values = []
+        for d in data:
+            row = [d["user"]["name"], d["user"]["email"]]
+            for key in d["data"]:
+                row.append(d["data"][key]["value"])
+            values.append(row)
+        with open('reg_data.csv', 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(cols)
+            writer.writerows(values)
+        with open('reg_data.csv', 'rb') as f:
+            response = HttpResponse(f.read(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=reg_data.csv'
+            return response
+
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
