@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
@@ -301,6 +301,11 @@ def view_all_events(request):
     data = request.GET
     dept_id = data.get('dept_id')
     event_id = data.get('event_id')
+    user = request.user
+    if user.groups.filter(name="secretary").exists():
+        events = Event.objects.all()
+        serializer = SimpleEventSerializer(events, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     if not event_id and not dept_id:
         return Response({'message': 'Provide either event_id or dept_id'}, status=status.HTTP_400_BAD_REQUEST)
     if event_id:

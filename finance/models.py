@@ -59,6 +59,7 @@ class Bill(models.Model):
         Account, on_delete=models.PROTECT, related_name="bills")
     requirements = models.ManyToManyField(Requirement, related_name="bills")
     amount = models.FloatField()
+    total_amount = models.FloatField(null=True, blank=True)
     description = models.TextField()
     approval_status = models.ForeignKey(
         ApprovalStatus, on_delete=models.PROTECT)
@@ -69,7 +70,8 @@ class Bill(models.Model):
     date_created = models.DateTimeField(
         auto_now_add=True, null=True, blank=True)
     message = models.TextField(null=True, blank=True)
-    upi_id = models.CharField(max_length=32, null=True, blank=True)
+    upi = models.CharField(max_length=32, null=True, blank=True)
+    phone = models.CharField(max_length=13, null=True, blank=True)
 
     def __str__(self):
         return self.title

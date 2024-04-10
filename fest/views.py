@@ -304,9 +304,9 @@ def get_events(request):
                 {'message': 'Department not found'}, status=status.HTTP_404_NOT_FOUND
             )
     else:
-        events = Event.objects.prefetch_related('department').all()
-        # events = Event.objects.prefetch_related(
-        #     'department').filter(is_approved=True).all()
+        # events = Event.objects.prefetch_related('department').all()
+        events = Event.objects.prefetch_related(
+            'department').filter(is_approved=True).all()
 
     events_data = []
     for event in events:

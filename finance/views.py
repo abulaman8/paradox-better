@@ -438,6 +438,8 @@ def upload_bill(request):
                 bill_type=bill_type,
                 amount=amount,
                 account=account,
+                total_amount=data.get(
+                    'total_amount') if bill_type == 'vendor_advance_payment' else amount,
                 description=description,
                 approval_status=pending,
                 file=file,
@@ -463,6 +465,15 @@ def upload_bill(request):
             )
     else:
         vendor = data.get('vendor')
+        student_details = data.get('student_details')
+        student_details = json.loads(student_details)
+        upi = student_details.get('upi')
+        phone = student_details.get('phone')
+        if not upi or not phone:
+            return Response({
+                'message': 'UPI and phone number are required'
+            }, status=status.HTTP_400_BAD_REQUEST
+            )
         vendor = json.loads(vendor)
         if not vendor:
             return Response({
@@ -481,6 +492,8 @@ def upload_bill(request):
                 title=title,
                 bill_type=bill_type,
                 amount=amount,
+                upi=upi,
+                phone=phone,
                 account=account,
                 description=description,
                 approval_status=pending,
