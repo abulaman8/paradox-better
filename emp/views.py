@@ -88,13 +88,13 @@ def edit_event(request):
     location = data.get('location')
     location_link = data.get('location_link')
     start_date = datetime.fromtimestamp(
-        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
+        int(data.get('start_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if data.get('start_date') else None
     end_date = datetime.fromtimestamp(
-        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
+        int(data.get('end_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if data.get('end_date') else None
     registration_start_date = datetime.fromtimestamp(
-        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
+        int(data.get('registration_start_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if data.get('registration_start_date') else None
     registration_end_date = datetime.fromtimestamp(
-        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30)
+        int(data.get('registration_end_date'))//1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if data.get('registration_end_date') else None
     rules = data.get('rules')
     sponsors = data.get('sponsors')
     rounds = data.get('rounds')
@@ -163,9 +163,9 @@ def edit_event(request):
                 event=event,
                 name=round.get('name'),
                 start_time=datetime.fromtimestamp(
-                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30),
+                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if round.get('start_time') else None,
                 end_time=datetime.fromtimestamp(
-                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30),
+                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if round.get('end_time') else None,
                 location=round.get('location'),
                 location_link=round.get('location_link'),
                 description=round.get('description')
