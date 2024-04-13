@@ -8,7 +8,7 @@ from django.contrib.auth.models import Permission
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department
+from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department, Role
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
 from .models import RegData, Round, SomeDude
 from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
@@ -448,7 +448,7 @@ def create_event_form(request):
 
 
 @api_view(['PUT'])
-@has_perms(['change_event'])
+@has_event_perms(['change_event'])
 def edit_event_form(request):
     data = request.data
     event_id = data.get('event_id')
@@ -867,3 +867,30 @@ def get_csv_data(request):
 
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@has_event_perms(['change_event'])
+def change_head(request):
+    data = request.data
+    event_id = data.get('event_id')
+    head = data.get('head')
+    try:
+        event = Event.objects.get(id=event_id)
+        user = User.objects.get(email=head)
+        role = Role.objects.get(
+            name="head",
+            content_type=ContentType.objects.get_for_model(Event),
+            object_id=event.id
+        )
+        with transaction.atomic():
+            role.users.remove(event.head)
+            event.head = user
+            event.save()
+            role.users.add(user)
+            role.save()
+            return Response({'message': 'Head changed successfully'}, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+    except User.DoesNotExist:
+        return Response({'message': 'User with the provided email not found'}, status=status.HTTP_400_BAD_REQUEST)

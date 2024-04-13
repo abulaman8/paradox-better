@@ -36,7 +36,7 @@ class Command(BaseCommand):
     help = 'create accommodation registration for students in emails and set payment_status to True'
 
     def handle(self, *args, **options):
-        with open('emails', 'r') as f:
+        with open('left_out_emails', 'r') as f:
             emails = f.read().splitlines()
         # emails = [
         #     '21f3002911@ds.study.iitm.ac.in',

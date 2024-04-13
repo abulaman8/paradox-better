@@ -105,7 +105,7 @@ def has_perms(perms: list):
 
                 if event:
                     for perm in permissions:
-                        if perm not in user_permissions['events'][event.id]:
+                        if perm not in user_permissions['events'].get(event.id, []):
                             return Response(
                                 {'message': 'User does not have permission'},
                                 status=status.HTTP_403_FORBIDDEN
@@ -114,7 +114,7 @@ def has_perms(perms: list):
                 elif department:
                     for perm in permissions:
                         # print(user_permissions['departments'][department.id])
-                        if perm not in user_permissions['departments'][department.id]:
+                        if perm not in user_permissions['departments'].get(department.id, []):
                             return Response(
                                 {'message': 'User does not have permission'},
                                 status=status.HTTP_403_FORBIDDEN

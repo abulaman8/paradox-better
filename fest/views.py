@@ -294,7 +294,9 @@ def get_events(request):
             dept = Department.objects.get(id=dept_id)
             events = Event.objects.prefetch_related(
                 'department').filter(
-                department=dept, is_approved=True).all()
+                department=dept,
+                # is_approved=True
+            ).all()
             if not dept.event_based:
                 return Response(
                     {'message': 'Department not found'}, status=status.HTTP_404_NOT_FOUND
@@ -304,9 +306,9 @@ def get_events(request):
                 {'message': 'Department not found'}, status=status.HTTP_404_NOT_FOUND
             )
     else:
-        # events = Event.objects.prefetch_related('department').all()
-        events = Event.objects.prefetch_related(
-            'department').filter(is_approved=True).all()
+        events = Event.objects.prefetch_related('department').all()
+        # events = Event.objects.prefetch_related(
+        #     'department').filter(is_approved=True).all()
 
     events_data = []
     for event in events:
@@ -327,10 +329,10 @@ def get_event_by_id(request):
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
-            if not event.is_approved:
-                return Response(
-                    {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-                )
+            # if not event.is_approved:
+            #     return Response(
+            #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+            #     )
             serializer = FestEventSerializer(event)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Event.DoesNotExist:
@@ -347,10 +349,10 @@ def get_event_form(request):
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
-            if not event.is_approved:
-                return Response(
-                    {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-                )
+            # if not event.is_approved:
+            #     return Response(
+            #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+            #     )
             form = event.form
             if not form:
                 return Response(
@@ -385,10 +387,10 @@ def register_for_event(request):
         event = Event.objects.get(id=event_id)
         student = Student.objects.get(email=email)
         event_form = event.form
-        if not event.is_approved:
-            return Response(
-                {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-            )
+        # if not event.is_approved:
+        #     return Response(
+        #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+        #     )
         if not event_form:
             return Response(
                 {'message': 'Form not found'}, status=status.HTTP_404_NOT_FOUND
@@ -472,10 +474,10 @@ def edit_event_registration(request):
                 {'message': 'No registration found'}, status=status.HTTP_404_NOT_FOUND
             )
         event_form = event.form
-        if not event.is_approved:
-            return Response(
-                {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-            )
+        # if not event.is_approved:
+        #     return Response(
+        #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+        #     )
         if not event_form:
             return Response(
                 {'message': 'Form not found'}, status=status.HTTP_404_NOT_FOUND

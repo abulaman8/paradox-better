@@ -331,10 +331,6 @@ def get_bill(request, bill_id):
         account = bill.account
         dept = Department.objects.filter(account=account).first()
         event = Event.objects.filter(account=account).first()
-        print(event, id, event_id)
-        print(dept, id, event_id)
-        if (event and event_id and event.id != int(event_id)) or (dept and id and dept.id != int(id)):
-            return Response({'message': 'Bill does not exist'}, status=status.HTTP_404_NOT_FOUND)
         serializer = BillSerializer(bill)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Bill.DoesNotExist:
