@@ -378,6 +378,14 @@ def get_event_form(request):
                 return Response(
                     {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
                 )
+            if event.registration_start_date.date() > datetime.now().date():
+                return Response(
+                    {'message': 'Registration not started yet'}, status=status.HTTP_400_BAD_REQUEST
+                )
+            if event.registration_end_date.date() < datetime.now().date():
+                return Response(
+                    {'message': 'Registration closed'}, status=status.HTTP_400_BAD_REQUEST
+                )
             form = event.form
             if not form:
                 return Response(
@@ -461,19 +469,20 @@ def register_for_event(request):
             vel = el.element
             it = el.inputType
             if it == 'email':
-                email_list.append(vel["value"])  # type: ignore
+                # type: ignore
+                if vel["value"] is not None and len(vel["value"]) > 0:
+                    email_list.append(vel["value"])  # type: ignore
             final_data[i] = {
                 'label': el.label,
                 'value': ','.join(
                     map(str, vel["values"]  # type: ignore
                         ))if it == 'checkbox' else vel["value"]  # type: ignore
             }
-        try:
-            users = [User.objects.get(email=email) for email in email_list]
-        except User.DoesNotExist:
-            return Response(
-                {'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND
-            )
+        for email in email_list:
+            if not User.objects.filter(email=email).exists():
+                return Response(
+                    {'message': f'User with {email} not found'}, status=status.HTTP_404_NOT_FOUND
+                )
         students = Student.objects.filter(email__in=email_list).all()
         for stu in students:
             if RegData.objects.filter(students__in=[stu], event=event).exists():
@@ -485,7 +494,7 @@ def register_for_event(request):
             student=student,
             event=event,
             data=final_data,
-            form=user_form
+            form=data.get('form')
         )
         reg_data.students.set(students)
         reg_data.save()
@@ -566,19 +575,20 @@ def edit_event_registration(request):
             vel = el.element
             it = el.inputType
             if it == 'email':
-                email_list.append(vel["value"])  # type: ignore
+                # type: ignore
+                if vel["value"] is not None and len(vel["value"]) > 0:
+                    email_list.append(vel["value"])  # type: ignore
             final_data[i] = {
                 'label': el.label,
                 'value': ','.join(
                     map(str, vel["values"]  # type: ignore
                         ))if it == 'checkbox' else vel["value"]  # type: ignore
             }
-        try:
-            users = [User.objects.get(email=email) for email in email_list]
-        except User.DoesNotExist:
-            return Response(
-                {'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND
-            )
+        for email in email_list:
+            if not User.objects.filter(email=email).exists():
+                return Response(
+                    {'message': f'User with {email} not found'}, status=status.HTTP_404_NOT_FOUND
+                )
         students = Student.objects.filter(email__in=email_list).all()
 
         old_members = check_reg.students.all()
@@ -593,7 +603,7 @@ def edit_event_registration(request):
                 )
 
         check_reg.data = final_data
-        check_reg.form = user_form
+        check_reg.form = data.get('form')
         check_reg.students.set(students)
         check_reg.save()
         return Response({'message': 'Registration updated successfully'}, status=status.HTTP_200_OK)
