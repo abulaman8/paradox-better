@@ -469,9 +469,9 @@ def register_for_event(request):
             vel = el.element
             it = el.inputType
             if it == 'email':
-                # type: ignore
-                if vel["value"] is not None and len(vel["value"]) > 0:
-                    email_list.append(vel["value"])  # type: ignore
+                val = vel["value"]  # type: ignore
+                if val is not None and len(val) > 0:
+                    email_list.append(val)
             final_data[i] = {
                 'label': el.label,
                 'value': ','.join(
@@ -537,6 +537,10 @@ def edit_event_registration(request):
             return Response(
                 {'message': 'No registration found'}, status=status.HTTP_404_NOT_FOUND
             )
+        if check_reg.student != student:
+            return Response(
+                {'message': 'You are not allowed to edit the registration, only the team leader can edit this, if you think this is a mistake, contact support'}, status=status.HTTP_401_UNAUTHORIZED
+            )
         event_form = event.form
         if not event.is_approved:
             return Response(
@@ -575,9 +579,9 @@ def edit_event_registration(request):
             vel = el.element
             it = el.inputType
             if it == 'email':
-                # type: ignore
-                if vel["value"] is not None and len(vel["value"]) > 0:
-                    email_list.append(vel["value"])  # type: ignore
+                val = vel["value"]  # type: ignore
+                if val is not None and len(val) > 0:
+                    email_list.append(val)
             final_data[i] = {
                 'label': el.label,
                 'value': ','.join(
@@ -616,3 +620,39 @@ def edit_event_registration(request):
         return Response(
             {'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(['GET'])
+@authed()
+def get_registered_events(request):
+    user = request.user
+    student = Student.objects.get(email=user.email)
+    reg_data = RegData.objects.filter(student=student).union(
+        RegData.objects.filter(students__in=[student])).all()
+    events = [rd.event for rd in reg_data]
+    events_data = []
+    for event in events:
+        events_data.append({
+            'id': event.id,
+            'name': event.name,
+            'header_image': event.header_image,
+        })
+    return Response(events_data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authed()
+def get_event_reg(request, event_id):
+    user = request.user
+    student = Student.objects.get(email=user.email)
+    reg_data = RegData.objects.filter(
+        student=student, event_id=event_id).first()
+    if not reg_data:
+        return Response(
+            {'message': 'No registration found'}, status=status.HTTP_404_NOT_FOUND
+        )
+    data = {
+        "user": reg_data.student.email,
+        "form": reg_data.form,
+    }
+    return Response(data, status=status.HTTP_200_OK)
