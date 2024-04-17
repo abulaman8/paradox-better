@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
+from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from rest_framework.decorators import api_view
@@ -126,69 +127,72 @@ def edit_event(request):
             object_id=event.id
         )
         event.save()
-        FAQ.objects.filter(
-            content_type=ContentType.objects.get_for_model(Event),
-            object_id=event.id
-        ).delete()
-        Link.objects.filter(
-            content_type=ContentType.objects.get_for_model(Event),
-            object_id=event.id
-        ).delete()
-        Round.objects.filter(
-            event=event
-        ).delete()
-        Sponsor.objects.filter(
-            content_type=ContentType.objects.get_for_model(Event),
-            object_id=event.id
-        ).delete()
-        SomeDude.objects.filter(
-            event=event
-        ).delete()
-        for faq in faqs:
-            FAQ.objects.create(
-                question=faq.get('question'),
-                answer=faq.get('answer'),
+        cache.delete(f'event_{event_id}')
+        cache.delete('all_events')
+        with transaction.atomic():
+            FAQ.objects.filter(
                 content_type=ContentType.objects.get_for_model(Event),
                 object_id=event.id
-            )
-        for link in social_links:
-            Link.objects.create(
-                name=link.get('name'),
-                content_type=ContentType.objects.get_for_model(Event),
-                object_id=event.id,
-                url=link.get('url')
-            )
-        for round in rounds:
-            Round.objects.create(
-                event=event,
-                name=round.get('name'),
-                start_time=datetime.fromtimestamp(
-                    int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if round.get('start_time') else None,
-                end_time=datetime.fromtimestamp(
-                    int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if round.get('end_time') else None,
-                location=round.get('location'),
-                location_link=round.get('location_link'),
-                description=round.get('description')
-            )
-        for sponsor in sponsors:
-            Sponsor.objects.create(
-                name=sponsor.get('name'),
-                title=sponsor.get('title'),
-                logo=sponsor.get('logo'),
-                url=sponsor.get('url'),
+            ).delete()
+            Link.objects.filter(
                 content_type=ContentType.objects.get_for_model(Event),
                 object_id=event.id
-            )
-        for some_dude in some_dudes:
-            SomeDude.objects.create(
-                name=some_dude.get('name'),
-                email=some_dude.get('email'),
-                dude_type=some_dude.get('dude_type'),
-                event=event,
-                image=some_dude.get('image'),
-                bio=some_dude.get('bio'),
+            ).delete()
+            Round.objects.filter(
+                event=event
+            ).delete()
+            Sponsor.objects.filter(
+                content_type=ContentType.objects.get_for_model(Event),
+                object_id=event.id
+            ).delete()
+            SomeDude.objects.filter(
+                event=event
+            ).delete()
+            for faq in faqs:
+                FAQ.objects.create(
+                    question=faq.get('question'),
+                    answer=faq.get('answer'),
+                    content_type=ContentType.objects.get_for_model(Event),
+                    object_id=event.id
+                )
+            for link in social_links:
+                Link.objects.create(
+                    name=link.get('name'),
+                    content_type=ContentType.objects.get_for_model(Event),
+                    object_id=event.id,
+                    url=link.get('url')
+                )
+            for round in rounds:
+                Round.objects.create(
+                    event=event,
+                    name=round.get('name'),
+                    start_time=datetime.fromtimestamp(
+                        int(round.get('start_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if round.get('start_time') else None,
+                    end_time=datetime.fromtimestamp(
+                        int(round.get('end_time')) // 1000).replace(tzinfo=timezone.utc) - timedelta(hours=5, minutes=30) if round.get('end_time') else None,
+                    location=round.get('location'),
+                    location_link=round.get('location_link'),
+                    description=round.get('description')
+                )
+            for sponsor in sponsors:
+                Sponsor.objects.create(
+                    name=sponsor.get('name'),
+                    title=sponsor.get('title'),
+                    logo=sponsor.get('logo'),
+                    url=sponsor.get('url'),
+                    content_type=ContentType.objects.get_for_model(Event),
+                    object_id=event.id
+                )
+            for some_dude in some_dudes:
+                SomeDude.objects.create(
+                    name=some_dude.get('name'),
+                    email=some_dude.get('email'),
+                    dude_type=some_dude.get('dude_type'),
+                    event=event,
+                    image=some_dude.get('image'),
+                    bio=some_dude.get('bio'),
 
-            )
+                )
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
@@ -205,6 +209,7 @@ def delete_event(request):
     try:
         event = Event.objects.get(id=event_id)
         event.delete()
+        cache.delete('all_events')
         return Response({'message': 'Event deleted successfully'}, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -239,6 +244,7 @@ def approve_event(request):
             except Exception as e:
                 print(e)
             serializer = EventSerializer(event)
+            cache.delete('all_events')
             return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -276,6 +282,7 @@ def disapprove_event(request):
             except Exception as e:
                 print(e)
             serializer = EventSerializer(event)
+            cache.delete('all_events')
             return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -780,6 +787,7 @@ def edit_event_form(request):
                     )
 
         serializer = FormSerializer(form)
+        cache.delete(f'form_{event_id}')
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)

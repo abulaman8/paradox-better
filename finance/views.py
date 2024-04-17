@@ -647,6 +647,16 @@ def final_level_rejection(request, bill_id):
 def get_all_approved_requirements(request):
     data = request.GET
     dept_id = data.get('dept_id')
+    event_id = data.get('event_id')
+    if event_id:
+        try:
+            event = Event.objects.get(id=event_id)
+            requirements = Requirement.objects.filter(
+                approval_status=ApprovalStatus.objects.get(name='final_level_approved')).filter(event=event).all()
+            serialized = RequirementSerializer(requirements, many=True)
+            return Response(serialized.data, status=status.HTTP_200_OK)
+        except Event.DoesNotExist:
+            return Response({'message': 'Event does not exist'}, status=status.HTTP_404_NOT_FOUND)
     if dept_id:
         try:
             dept = Department.objects.get(id=dept_id)

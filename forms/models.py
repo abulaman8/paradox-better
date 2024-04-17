@@ -50,7 +50,7 @@ class Element(models.Model):
     name = models.CharField(max_length=128)
     position = models.IntegerField()
     block = models.ForeignKey(Block, on_delete=models.CASCADE)
-    label = models.CharField(max_length=128)
+    label = models.CharField(max_length=1024)
     element_type = models.CharField(max_length=128)
     show = models.BooleanField(default=False)
     content_type = models.ForeignKey(
@@ -89,7 +89,7 @@ class Input(models.Model):
     min_length = models.IntegerField(null=True, blank=True)
     max = models.IntegerField(null=True, blank=True)
     min = models.IntegerField(null=True, blank=True)
-    value = models.CharField(max_length=128, null=True, blank=True)
+    value = models.CharField(max_length=1024, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -126,7 +126,7 @@ class RadioGroup(models.Model):
     uuid = models.UUIDField(
         default=uuid.uuid4, null=True, blank=True)
     inputs = models.JSONField()
-    value = models.CharField(max_length=128, null=True, blank=True)
+    value = models.CharField(max_length=1024, null=True, blank=True)
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -160,7 +160,7 @@ class Select(models.Model):
     uuid = models.UUIDField(
         default=uuid.uuid4, null=True, blank=True)
     inputs = models.JSONField()
-    value = models.CharField(max_length=128, null=True, blank=True)
+    value = models.CharField(max_length=1024, null=True, blank=True)
     required = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -189,6 +189,16 @@ DATABASES = {
     }
 }
 
+
+# redis cache
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://default:T38DaQzM7uLFYhOZj9XpWCS9DnuVpSZ8@redis-16503.c305.ap-south-1-1.ec2.cloud.redislabs.com:16503"
+    }
+}
+
 # TcNuAatJTNvxRLkYecIhHF88kLVJcY2DmMZGzSzN
 # GNQ6pAA4FAVYlvswYgPqjspbXpOse79w6wBDnk6qQmSJEkwSRXtTptNgEHuqORs4GxLwfnUfEaAKS3oMjtpCRyQI2N4E5ApkytMf7xf3AJk4tLLcpVOVZ23b3QzhHzF9
 

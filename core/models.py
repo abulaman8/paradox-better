@@ -216,7 +216,7 @@ class GalleryImage(models.Model):
 
 class FAQ(models.Model):
     id = models.AutoField(primary_key=True)
-    question = models.CharField(max_length=100)
+    question = models.CharField(max_length=2048)
     answer = models.TextField()
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=True)

@@ -44,7 +44,10 @@ class RegData(models.Model):
     id = models.AutoField(primary_key=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    form = models.JSONField(default=dict)
     data = models.JSONField(default=dict)
+    students = models.ManyToManyField(
+        Student, blank=True, related_name='reg_data')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

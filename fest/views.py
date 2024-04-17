@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.template import Template, Context
 from django.core.mail import EmailMultiAlternatives
+from django.core.cache import cache
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +17,18 @@ from forms.serializers import FormSerializer
 from forms.types import FormType, BlockType, ElementType, InputType, SelectType, RadioGroupType, CheckboxGroupType
 from .models import FestRegistrstion, AccomodationRegistration
 from typing import List
+
+
+@api_view(['GET'])
+@authed()
+def check_user(request):
+    data = request.GET
+    email = data.get('email')
+    try:
+        user = User.objects.get(email=email)
+        return Response({'exists': True}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({'exists': False}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -295,7 +309,7 @@ def get_events(request):
             events = Event.objects.prefetch_related(
                 'department').filter(
                 department=dept,
-                # is_approved=True
+                is_approved=True
             ).all()
             if not dept.event_based:
                 return Response(
@@ -306,9 +320,14 @@ def get_events(request):
                 {'message': 'Department not found'}, status=status.HTTP_404_NOT_FOUND
             )
     else:
-        events = Event.objects.prefetch_related('department').all()
-        # events = Event.objects.prefetch_related(
-        #     'department').filter(is_approved=True).all()
+        all_events_cache = cache.get('all_events', None)
+        # print("all_events_cache", all_events_cache)
+        if all_events_cache:
+            print("from cache")
+            return Response(all_events_cache, status=status.HTTP_200_OK)
+        # events = Event.objects.prefetch_related('department').all()
+        events = Event.objects.prefetch_related(
+            'department').filter(is_approved=True).all()
 
     events_data = []
     for event in events:
@@ -318,6 +337,7 @@ def get_events(request):
             'header_image': event.header_image,
             'department': event.department.name
         })
+    cache.set('all_events', events_data, None)
     return Response(events_data, status=status.HTTP_200_OK)
 
 
@@ -329,11 +349,16 @@ def get_event_by_id(request):
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
-            # if not event.is_approved:
-            #     return Response(
-            #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-            #     )
+            if not event.is_approved:
+                return Response(
+                    {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+                )
+            event_cache = cache.get(f'event_{event_id}', None)
+            if event_cache:
+                print("from cache")
+                return Response(event_cache, status=status.HTTP_200_OK)
             serializer = FestEventSerializer(event)
+            cache.set(f'event_{event_id}', serializer.data, None)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Event.DoesNotExist:
             return Response(
@@ -349,16 +374,22 @@ def get_event_form(request):
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
-            # if not event.is_approved:
-            #     return Response(
-            #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-            #     )
+            if not event.is_approved:
+                return Response(
+                    {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+                )
             form = event.form
             if not form:
                 return Response(
                     {'message': 'Form not found'}, status=status.HTTP_404_NOT_FOUND
                 )
+            form_cache = cache.get(f'form_{event_id}', None)
+            if form_cache:
+                print("from cache")
+                # cache.delete(f'form_{event_id}')
+                return Response(form_cache, status=status.HTTP_200_OK)
             serializer = FormSerializer(form)
+            cache.set(f'form_{event_id}', serializer.data, None)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Event.DoesNotExist:
             return Response(
@@ -387,16 +418,23 @@ def register_for_event(request):
         event = Event.objects.get(id=event_id)
         student = Student.objects.get(email=email)
         event_form = event.form
-        # if not event.is_approved:
-        #     return Response(
-        #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-        #     )
+        if not event.is_approved:
+            return Response(
+                {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+            )
         if not event_form:
             return Response(
                 {'message': 'Form not found'}, status=status.HTTP_404_NOT_FOUND
             )
+        check_reg = RegData.objects.filter(
+            student=student, event=event).first()
+        if check_reg:
+            return Response(
+                {'message': 'You have already registered'}, status=status.HTTP_400_BAD_REQUEST
+            )
         event_elements = []
         user_elements = []
+        email_list = []
         event_blocks = Block.objects.filter(form=event_form)
         for blk in event_blocks:
             elements = Element.objects.filter(block=blk)
@@ -422,19 +460,36 @@ def register_for_event(request):
         for i, el in enumerate(user_inputs):
             vel = el.element
             it = el.inputType
+            if it == 'email':
+                email_list.append(vel["value"])  # type: ignore
             final_data[i] = {
                 'label': el.label,
                 'value': ','.join(
                     map(str, vel["values"]  # type: ignore
                         ))if it == 'checkbox' else vel["value"]  # type: ignore
             }
+        try:
+            users = [User.objects.get(email=email) for email in email_list]
+        except User.DoesNotExist:
+            return Response(
+                {'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND
+            )
+        students = Student.objects.filter(email__in=email_list).all()
+        for stu in students:
+            if RegData.objects.filter(students__in=[stu], event=event).exists():
+                return Response(
+                    {'message': f'user with email {stu.email} already registered'}, status=status.HTTP_400_BAD_REQUEST
+                )
 
-        RegData.objects.create(
+        reg_data = RegData.objects.create(
             student=student,
             event=event,
-            data=final_data
-
+            data=final_data,
+            form=user_form
         )
+        reg_data.students.set(students)
+        reg_data.save()
+
         return Response({'message': 'Registered successfully'}, status=status.HTTP_200_OK)
 
     except Event.DoesNotExist:
@@ -474,16 +529,17 @@ def edit_event_registration(request):
                 {'message': 'No registration found'}, status=status.HTTP_404_NOT_FOUND
             )
         event_form = event.form
-        # if not event.is_approved:
-        #     return Response(
-        #         {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
-        #     )
+        if not event.is_approved:
+            return Response(
+                {'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND
+            )
         if not event_form:
             return Response(
                 {'message': 'Form not found'}, status=status.HTTP_404_NOT_FOUND
             )
         event_elements = []
         user_elements = []
+        email_list = []
         event_blocks = Block.objects.filter(form=event_form)
         for blk in event_blocks:
             elements = Element.objects.filter(block=blk)
@@ -509,14 +565,36 @@ def edit_event_registration(request):
         for i, el in enumerate(user_inputs):
             vel = el.element
             it = el.inputType
+            if it == 'email':
+                email_list.append(vel["value"])  # type: ignore
             final_data[i] = {
                 'label': el.label,
                 'value': ','.join(
                     map(str, vel["values"]  # type: ignore
                         ))if it == 'checkbox' else vel["value"]  # type: ignore
             }
+        try:
+            users = [User.objects.get(email=email) for email in email_list]
+        except User.DoesNotExist:
+            return Response(
+                {'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND
+            )
+        students = Student.objects.filter(email__in=email_list).all()
+
+        old_members = check_reg.students.all()
+        new_members = [stu for stu in students if stu not in old_members]
+        for nm in new_members:
+            dup_reg = RegData.objects.filter(
+                students__in=[nm], event=event).first() or RegData.objects.filter(
+                    student=nm, event=event).first()
+            if dup_reg:
+                return Response(
+                    {'message': f'user with email {nm.email} already registered in another team'}, status=status.HTTP_400_BAD_REQUEST
+                )
 
         check_reg.data = final_data
+        check_reg.form = user_form
+        check_reg.students.set(students)
         check_reg.save()
         return Response({'message': 'Registration updated successfully'}, status=status.HTTP_200_OK)
 
