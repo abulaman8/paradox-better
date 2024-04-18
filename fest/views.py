@@ -494,6 +494,11 @@ def register_for_event(request):
                 return Response(
                     {'message': f'user with email {stu.email} already registered'}, status=status.HTTP_400_BAD_REQUEST
                 )
+        for stu in students:
+            if not FestRegistrstion.objects.filter(student=stu).exists():
+                return Response(
+                    {'message': f'user with email {stu.email} not registered for fest'}, status=status.HTTP_400_BAD_REQUEST
+                )
 
         reg_data = RegData.objects.create(
             student=student,
@@ -622,6 +627,11 @@ def edit_event_registration(request):
                     {'message': f'User with {email} not found'}, status=status.HTTP_404_NOT_FOUND
                 )
         students = Student.objects.filter(email__in=email_list).all()
+        for stu in students:
+            if not FestRegistrstion.objects.filter(student=stu, event=event).exists():
+                return Response(
+                    {'message': f'user with email {stu.email} not registered for fest'}, status=status.HTTP_404_NOT_FOUND
+                )
 
         old_members = check_reg.students.all()
         new_members = [stu for stu in students if stu not in old_members]
