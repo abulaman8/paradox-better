@@ -327,7 +327,16 @@ def get_bill(request, bill_id):
     id = data.get('dept_id')
     event_id = data.get('event_id')
     try:
-        bill = Bill.objects.get(id=bill_id)
+        bill = Bill.objects.prefetch_related(
+            'author',
+            'department',
+            'event',
+            'approval_status',
+            'bill_type',
+            'vendor',
+            'vendor__bank_details',
+            'sub_department',
+        ).get(id=bill_id)
         account = bill.account
         dept = Department.objects.filter(account=account).first()
         event = Event.objects.filter(account=account).first()

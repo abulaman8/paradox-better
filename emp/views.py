@@ -464,6 +464,8 @@ def edit_event_form(request):
     blocks = form_data.blocks
     try:
         event = Event.objects.get(id=event_id)
+        if event.registration_start_date.date() <= datetime.now().date():
+            return Response({'message': 'Event has already started'}, status=status.HTTP_400_BAD_REQUEST)
         form = event.form
         if not form:
             form = Form.objects.create(
@@ -819,6 +821,9 @@ def view_event_reg_data(request):
         reg_data = RegData.objects.prefetch_related(
             'student').filter(event=event).all()
         for reg in reg_data:
+            form_dict = reg.form
+            form = FormType.from_dict(form_dict)
+
             user = User.objects.filter(email=reg.student.email).first()
             if not user:
                 continue

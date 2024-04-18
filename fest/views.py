@@ -10,7 +10,7 @@ from rest_framework import status
 from emp.models import RegData
 from fest.serializers import FestEventSerializer
 from forms.models import Block, Element
-from utils.templates import fest_reg_template
+from utils.templates import fest_reg_template, event_reg_conf_template
 from utils.decorators import authed
 from core.models import Student, Event, Department
 from forms.serializers import FormSerializer
@@ -371,6 +371,8 @@ def get_event_by_id(request):
 def get_event_form(request):
     data = request.GET
     event_id = data.get('event_id')
+    user = request.user
+    student = Student.objects.get(email=user.email)
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
@@ -386,16 +388,18 @@ def get_event_form(request):
                 return Response(
                     {'message': 'Registration closed'}, status=status.HTTP_400_BAD_REQUEST
                 )
-            form = event.form
-            if not form:
+            check_reg = RegData.objects.filter(student=student, event=event).first() or RegData.objects.filter(
+                students__in=[student], event=event).first()
+            if check_reg:
                 return Response(
-                    {'message': 'Form not found'}, status=status.HTTP_404_NOT_FOUND
+                    {'message': 'You have already registered for this event. You can edit the registration from your profile'}, status=status.HTTP_400_BAD_REQUEST
                 )
             form_cache = cache.get(f'form_{event_id}', None)
             if form_cache:
                 print("from cache")
                 # cache.delete(f'form_{event_id}')
                 return Response(form_cache, status=status.HTTP_200_OK)
+            form = event.form
             serializer = FormSerializer(form)
             cache.set(f'form_{event_id}', serializer.data, None)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -473,6 +477,7 @@ def register_for_event(request):
                 if val is not None and len(val) > 0:
                     email_list.append(val)
             final_data[i] = {
+                'id': el.id,
                 'label': el.label,
                 'value': ','.join(
                     map(str, vel["values"]  # type: ignore
@@ -498,6 +503,28 @@ def register_for_event(request):
         )
         reg_data.students.set(students)
         reg_data.save()
+        try:
+            print(f"email_list {email_list}")
+            print("user_email", user.email)
+            recipients = list(set(email_list + [user.email]))
+            print(recipients)
+            subject = f"Paradox'24 - Registration for {event.name}"
+            headers = {'Reply-To': "support@iitmparadox.org"}
+            template = Template(event_reg_conf_template)
+            context = Context({
+                'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+                'event_name': event.name,
+            })
+            from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"
+            rendered = template.render(context)
+            email = EmailMultiAlternatives(
+                subject, rendered, from_email, recipients, headers=headers)
+            email.attach_alternative(rendered, "text/html")
+            email.send()
+
+        except Exception as e:
+            print(e)
+            pass
 
         return Response({'message': 'Registered successfully'}, status=status.HTTP_200_OK)
 
@@ -583,6 +610,7 @@ def edit_event_registration(request):
                 if val is not None and len(val) > 0:
                     email_list.append(val)
             final_data[i] = {
+                'id': el.id,
                 'label': el.label,
                 'value': ','.join(
                     map(str, vel["values"]  # type: ignore
@@ -656,3 +684,18 @@ def get_event_reg(request, event_id):
         "form": reg_data.form,
     }
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@authed()
+def delete_reg(request, event_id):
+    user = request.user
+    student = Student.objects.get(email=user.email)
+    reg_data = RegData.objects.filter(
+        student=student, event_id=event_id).first()
+    if not reg_data:
+        return Response(
+            {'message': 'No registration found'}, status=status.HTTP_404_NOT_FOUND
+        )
+    reg_data.delete()
+    return Response({'message': 'Registration deleted successfully'}, status=status.HTTP_200_OK)

@@ -31,13 +31,14 @@ class BillSerializer(ModelSerializer):
     sub_department = SerializerMethodField()
     event = SerializerMethodField()
     bill_date = SerializerMethodField()
+    user_details = SerializerMethodField()
 
     class Meta:
         model = Bill
-        fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'description',
-                  'approval_status', 'bill_type', 'vendor', 'date_created', 'message', 'department', 'sub_department', 'event']
-        read_only_fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'description',
-                            'approval_status', 'bill_type', 'vendor', 'date_created', 'message', 'department', 'sub_department', 'event']
+        fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'total_amount', 'description',
+                  'approval_status', 'bill_type', 'vendor', 'date_created', 'message', 'department', 'sub_department', 'event', 'user_details']
+        read_only_fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'requirements', 'amount', 'total_amount', 'description',
+                            'approval_status', 'bill_type', 'vendor', 'date_created', 'message', 'department', 'sub_department', 'event', 'user_details']
 
     def get_bill_date(self, obj):
         return obj.bill_date.strftime('%Y-%m-%d')
@@ -59,6 +60,15 @@ class BillSerializer(ModelSerializer):
             return obj.account.event.name
         except:
             return None
+
+    def get_user_details(self, obj):
+        return {
+            "name": obj.author.first_name + " " + obj.author.last_name,
+            "email": obj.author.email,
+            "upi": obj.upi,
+            "phone": obj.phone
+
+        }
 
 
 class VoucherSerializer(ModelSerializer):

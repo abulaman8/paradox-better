@@ -105,3 +105,25 @@ fest_update_template = '''
 </body>
 </html>
 '''
+
+
+event_reg_conf_template = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paradox'24 Registration Confirmation</title>
+</head>
+<body>
+    <p>Dear {{ student_name }},</p>
+    
+    <p>We are pleased to inform you that your registration for the {{ event_name }} event at Paradox'24 has been captured successfully.</p>
+    <p>You can find all the events you have registered for and edit if needed in your profile page under "Registered Events".</p>
+    
+    <p>Thank you for participating! We look forward to seeing you at the event.</p>
+    
+    <p>Best regards,<br>
+    Paradox'24 Team</p>
+</body>
+</html>
+
+'''

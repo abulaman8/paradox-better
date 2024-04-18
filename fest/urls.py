@@ -18,5 +18,7 @@ urlpatterns = [
          name='get_registered_events'),
     path('events/registered/<int:event_id>/',
          views.get_event_reg, name='get_event_reg'),
+    path('events/registered/<int:event_id>/delete/',
+         views.delete_reg, name='delete_reg'),
     path('user/exists/', views.check_user, name='check_user'),
 ]
