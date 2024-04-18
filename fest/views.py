@@ -429,6 +429,10 @@ def register_for_event(request):
     try:
         event = Event.objects.get(id=event_id)
         student = Student.objects.get(email=email)
+        if not FestRegistrstion.objects.filter(student=student).exists():
+            return Response(
+                {'message': 'You have not registered for the fest'}, status=status.HTTP_400_BAD_REQUEST
+            )
         event_form = event.form
         if not event.is_approved:
             return Response(
@@ -563,6 +567,10 @@ def edit_event_registration(request):
     try:
         event = Event.objects.get(id=event_id)
         student = Student.objects.get(email=email)
+        if not FestRegistrstion.objects.filter(student=student).exists():
+            return Response(
+                {'message': 'You have not registered for the fest'}, status=status.HTTP_400_BAD_REQUEST
+            )
         check_reg = RegData.objects.filter(
             student=student, event=event).first()
         if not check_reg:
