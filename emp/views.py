@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department, Role
+from core.serializers import UserSerializer
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
 from .models import RegData, Round, SomeDude
 from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
@@ -310,9 +311,14 @@ def view_all_events(request):
     event_id = data.get('event_id')
     user = request.user
     if user.groups.filter(name="secretary").exists():
-        events = Event.objects.all()
-        serializer = SimpleEventSerializer(events, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        c = cache.get('emp_all_events')
+        if not c:
+            events = Event.objects.all()
+            serializer = SimpleEventSerializer(events, many=True)
+            cache.set('emp_all_events', serializer.data, None)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(c, status=status.HTTP_200_OK)
     if not event_id and not dept_id:
         return Response({'message': 'Provide either event_id or dept_id'}, status=status.HTTP_400_BAD_REQUEST)
     if event_id:
@@ -815,25 +821,42 @@ def view_form(request):
 def view_event_reg_data(request):
     data = request.GET
     event_id = data.get('event_id')
+    user = request.user
+    user_serialized = UserSerializer(user).data
+    unfiltered_access = user_serialized["permissions"]["emp"]["all"][   # type: ignore
+        "edit"] or user_serialized["permissions"]["emp"]["department"]["edit"]  # type: ignore
+    print(unfiltered_access)
     try:
         event = Event.objects.get(id=event_id)
         data = []
         reg_data = RegData.objects.prefetch_related(
             'student').filter(event=event).all()
+        if len(reg_data) == 0:
+            return Response(data, status=status.HTTP_200_OK)
+        sample_reg_data = reg_data[0].data
+        allowed_el_ids = []
+        for entry in sample_reg_data:
+            el_id = sample_reg_data[entry]['id']
+            element = Element.objects.get(id=el_id)
+            if element.show:
+                allowed_el_ids.append(el_id)
         for reg in reg_data:
-            form_dict = reg.form
-            form = FormType.from_dict(form_dict)
-
             user = User.objects.filter(email=reg.student.email).first()
             if not user:
                 continue
-            d = {}
-            d['user'] = {}
-            d['user']['id'] = user.id  # type: ignore
-            d['user']['name'] = f"{user.first_name} {user.last_name}"
-            d['user']['email'] = user.email
-            d['data'] = [reg.data[key] for key in reg.data.keys()]
-            data.append(d)
+            r = {}
+            r['name'] = f"{user.first_name} {user.last_name}"
+            r['email'] = user.email
+            for key in reg.data.keys():
+                if unfiltered_access:
+                    # print(reg.data[key]['id'], reg.data[key]['label'])
+                    r[reg.data[key].get('label', "No Label")
+                      ] = reg.data[key]['value']
+                elif reg.data[key]['id'] in allowed_el_ids:
+                    r[reg.data[key].get('label', "No Label")
+                      ] = reg.data[key]['value']
+
+            data.append(r)
         return Response(data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -844,11 +867,18 @@ def view_event_reg_data(request):
 def get_csv_data(request):
     data = request.GET
     event_id = data.get('event_id')
+    user = request.user
+    user_serialized = UserSerializer(user).data
+    unfiltered_access = user_serialized["permissions"]["emp"]["all"][   # type: ignore
+        "edit"] or user_serialized["permissions"]["emp"]["department"]["edit"]  # type: ignore
     try:
         event = Event.objects.get(id=event_id)
         data = []
         reg_data = RegData.objects.prefetch_related(
             'student').filter(event=event).all()
+        if len(reg_data) == 0:
+            return Response(data, status=status.HTTP_200_OK)
+
         for reg in reg_data:
             user = User.objects.filter(email=reg.student.email).first()
             if not user:
@@ -861,13 +891,26 @@ def get_csv_data(request):
             data.append(d)
         cols = ['name', 'email']
         sample = data[0]
+        allowed_element_ids = []
+        sample_data = sample['data']
+        for entry in sample_data:
+            el_id = sample_data[entry]['id']
+            el_object = Element.objects.get(id=el_id)
+            if el_object.show:
+                allowed_element_ids.append(el_id)
         for key in sample["data"]:
-            cols.append(sample["data"][key]["label"])
+            if unfiltered_access:
+                cols.append(sample["data"][key].get("label", "No Label"))
+            elif sample["data"][key]["id"] in allowed_element_ids:
+                cols.append(sample["data"][key].get("label", "No Label"))
         values = []
         for d in data:
             row = [d["user"]["name"], d["user"]["email"]]
             for key in d["data"]:
-                row.append(d["data"][key]["value"])
+                if unfiltered_access:
+                    row.append(d["data"][key]["value"])
+                elif d["data"][key]["id"] in allowed_element_ids:
+                    row.append(d["data"][key]["value"])
             values.append(row)
         with open('reg_data.csv', 'w') as f:
             writer = csv.writer(f)

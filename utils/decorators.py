@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt import authentication
 from functools import wraps
 from core.models import Department, Event, SubDepartment
 from frb.models import Requirement
@@ -15,7 +16,10 @@ def authed():
         @wraps(view_func)
         def wrapped_view(request, *args, **kwargs):
             auth = OAuth2Authentication()
-            auth_tuple = auth.authenticate(request)
+            jwt_auth = authentication.JWTAuthentication()
+            auth_tuple = auth.authenticate(
+                request) or jwt_auth.authenticate(request)
+
             if not auth_tuple:
                 return Response(
                     {'message': 'User is not authenticated'},

@@ -5,6 +5,8 @@ from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 import uuid
+
+from django.utils.text import wrap
 from forms.models import Form, Block, Element, Input
 
 
@@ -72,14 +74,6 @@ class QrCode(models.Model):
     student = models.OneToOneField(
         Student, on_delete=models.CASCADE, related_name='qr_code')
     image = models.ImageField(upload_to='qr_codes', null=True, blank=True)
-
-
-class OTP(models.Model):
-    id = models.AutoField(primary_key=True)
-    email = models.EmailField()
-    otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
 
 
 class Account(models.Model):
