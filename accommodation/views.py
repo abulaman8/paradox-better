@@ -185,7 +185,9 @@ def submit_supply_return_otp(request, id):
         otp = OTP.objects.filter(student=student).order_by('-id').first()
         if not otp:
             return Response({'message': 'No OTP found'}, status=status.HTTP_404_NOT_FOUND)
-        if otp.otp != request.data.get('otp'):
+        print(otp.otp, type(otp.otp))
+        print(request.data.get('otp'), type(request.data.get('otp')))
+        if int(otp.otp) != request.data.get('otp'):
             return Response({'message': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
         if otp.expires_at < timezone.now():
             return Response({'message': 'OTP expired'}, status=status.HTTP_400_BAD_REQUEST)

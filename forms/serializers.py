@@ -61,7 +61,7 @@ class ElementSerializer(ModelSerializer):
     class Meta:
         model = Element
         fields = ['id', 'name', 'block_id', 'label',
-                  'position', 'element', 'inputType']
+                  'position', 'element', 'inputType', 'show']
 
     def get_block_id(self, obj):
         return obj.block.id

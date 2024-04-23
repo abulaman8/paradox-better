@@ -32,6 +32,7 @@ class BillSerializer(ModelSerializer):
     event = SerializerMethodField()
     bill_date = SerializerMethodField()
     user_details = SerializerMethodField()
+    vendor = VendorSerializer(read_only=True)
 
     class Meta:
         model = Bill

@@ -954,16 +954,35 @@ def get_fr_perms(request):
 @api_view(['GET'])
 @has_requirement_perms(['view_requirement'])
 def download_req_csv(request):
-    requirements = Requirement.objects.prefetch_related(
-        'resource',
-        'resource__category',
-        'resource__unit_of_measure',
-        'department',
-        'sub_department',
-        'event',
-        'approval_status',
-        'author'
-    ).all().order_by('id')
+    data = request.GET
+    id = int(data.get('dept_id', 0))
+    if id:
+        try:
+            department = Department.objects.get(id=id)
+            requirements = Requirement.objects.prefetch_related(
+                'resource',
+                'resource__category',
+                'resource__unit_of_measure',
+                'department',
+                'sub_department',
+                'event',
+                'approval_status',
+                'author'
+            ).filter(department=department).all()
+        except Department.DoesNotExist:
+            return Response({"message": "Department not found"})
+
+    else:
+        requirements = Requirement.objects.prefetch_related(
+            'resource',
+            'resource__category',
+            'resource__unit_of_measure',
+            'department',
+            'sub_department',
+            'event',
+            'approval_status',
+            'author'
+        ).all().order_by('id')
 
     data = []
     for req in requirements:

@@ -950,3 +950,71 @@ def change_head(request):
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
     except User.DoesNotExist:
         return Response({'message': 'User with the provided email not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@has_event_perms(['change_event'])
+def filter_fields(request):
+    data = request.data
+    event_id = data.get('event_id')
+    print(event_id)
+    user = request.user
+    user_serialized = UserSerializer(user).data
+    unfiltered_access = user_serialized["permissions"]["emp"]["all"][   # type: ignore
+        "edit"] or user_serialized["permissions"]["emp"]["department"]["edit"]  # type: ignore
+    if not unfiltered_access:
+        return Response({'message': 'You do not have permission to filter fields'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        event = Event.objects.get(id=event_id)
+        el_ids_dict = data.get('element_ids')
+        el_ids = el_ids_dict.keys()
+
+        elements = [Element.objects.get(id=int(el_id)) for el_id in el_ids]
+        blocks = set()
+        for el in elements:
+            blocks.add(el.block)
+        forms = set()
+        for block in blocks:
+            forms.add(block.form)
+        if not len(forms) == 1:
+            return Response({'message': 'All elements must be in the same form'}, status=status.HTTP_400_BAD_REQUEST)
+        form = list(forms)[0]
+        if form != event.form:
+            return Response({'message': 'All elements must be in the same form'}, status=status.HTTP_400_BAD_REQUEST)
+        for el in elements:
+            el.show = el_ids_dict[str(el.id)]
+            el.save()
+        print([(el.id, el.show) for el in elements])
+        return Response({'message': 'Elements filtered successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found...'}, status=status.HTTP_400_BAD_REQUEST)
+    except Element.DoesNotExist:
+        return Response({'message': 'Element with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@has_event_perms(['change_event'])
+def get_elements(request):
+    data = request.GET
+    event_id = data.get('event_id')
+    user = request.user
+    user_serialized = UserSerializer(user).data
+    unfiltered_access = user_serialized["permissions"]["emp"]["all"][   # type: ignore
+        "edit"] or user_serialized["permissions"]["emp"]["department"]["edit"]  # type: ignore
+    if not unfiltered_access:
+        return Response({'message': 'You do not have permission to filter fields'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        event = Event.objects.get(id=event_id)
+        event_form = event.form
+        event_blocks = Block.objects.filter(form=event_form)
+        event_elements = []
+        for blk in event_blocks:
+            elements = Element.objects.filter(block=blk)
+            for el in elements:
+                event_elements.append(el)
+        return Response([
+            {"id": el.id, "label": el.label, "show": el.show} for el in event_elements
+        ])
+    except Event.DoesNotExist:
+        return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)

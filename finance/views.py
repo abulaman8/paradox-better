@@ -329,17 +329,11 @@ def get_bill(request, bill_id):
     try:
         bill = Bill.objects.prefetch_related(
             'author',
-            'department',
-            'event',
+            'account',
             'approval_status',
-            'bill_type',
             'vendor',
             'vendor__bank_details',
-            'sub_department',
         ).get(id=bill_id)
-        account = bill.account
-        dept = Department.objects.filter(account=account).first()
-        event = Event.objects.filter(account=account).first()
         serializer = BillSerializer(bill)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Bill.DoesNotExist:
