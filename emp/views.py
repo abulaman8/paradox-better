@@ -817,7 +817,7 @@ def view_form(request):
 
 
 @api_view(['GET'])
-@has_event_perms(['view_event_reg_data'])
+@has_event_perms(['change_event'])
 def view_event_reg_data(request):
     data = request.GET
     event_id = data.get('event_id')
@@ -863,7 +863,7 @@ def view_event_reg_data(request):
 
 
 @api_view(['GET'])
-@has_event_perms(['view_event_reg_data'])
+@has_event_perms(['change_event'])
 def get_csv_data(request):
     data = request.GET
     event_id = data.get('event_id')

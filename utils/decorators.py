@@ -26,11 +26,13 @@ def authed():
                     status=status.HTTP_401_UNAUTHORIZED
                 )
             user = auth_tuple[0]
+            print(f"user: {user}")
             if not user.is_authenticated:
                 return Response(
                     {'message': 'User is not authenticated'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
+            request.user = user
             return view_func(request, *args, **kwargs)
         return wrapped_view
     return decorator

@@ -19,5 +19,6 @@ urlpatterns = [
          name='submit_supply_give_otp'),
     path('otp/verify/return/<int:id>/', views.submit_supply_return_otp,
          name='submit_supply_return_otp'),
-    path('supply/all', views.get_all_supplies, name='get_all_supplies')
+    path('supply/all', views.get_all_supplies, name='get_all_supplies'),
+    path('volunteer/profile/', views.get_volunteer_info)
 ]
