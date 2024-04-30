@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from core.models import Student, QrCode
 from utils.decorators import has_perms, authed
-from .models import Accommadation, Supply, OTP, AccomVolunteer
+from .models import Accommadation, Hostel, Supply, OTP, AccomVolunteer
 from datetime import datetime, timedelta
 import random
 
@@ -273,3 +273,25 @@ def get_volunteer_info(request):
         "email": user.email,
         "hostels": [hostel.name for hostel in volunteer.hostels.all()]
     })
+
+
+@api_view(['GET'])
+@authed()
+def upcoming_students(request, id):
+    try:
+        hostel = Hostel.objects.get(id=id)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+    accom = Accommadation.objects.filter(
+        check_in__isnull=True, hostel=hostel).all()
+    students = []
+    for acc in accom:
+        student = acc.student
+        user = User.objects.filter(email=student.email).first()
+        if not user:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        students.append({
+            'name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+            'email': user.email
+        })
+    return Response(students, status=status.HTTP_200_OK)

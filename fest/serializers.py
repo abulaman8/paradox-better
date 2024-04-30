@@ -17,6 +17,7 @@ class FestEventSerializer(ModelSerializer):
     end_date = SerializerMethodField()
     registration_start_date = SerializerMethodField()
     registration_end_date = SerializerMethodField()
+    head = SerializerMethodField()
 
     class Meta:
         model = Event
@@ -42,8 +43,12 @@ class FestEventSerializer(ModelSerializer):
             'rounds',
             'some_dudes',
             'social_links',
-            'rules'
+            'rules',
+            'head'
         ]
+
+    def get_head(self, obj):
+        return obj.head.email
 
     def get_start_date(self, obj):
         return obj.start_date.timestamp() * 1000 if obj.start_date else None

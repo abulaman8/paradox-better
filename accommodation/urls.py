@@ -20,5 +20,7 @@ urlpatterns = [
     path('otp/verify/return/<int:id>/', views.submit_supply_return_otp,
          name='submit_supply_return_otp'),
     path('supply/all', views.get_all_supplies, name='get_all_supplies'),
-    path('volunteer/profile/', views.get_volunteer_info)
+    path('volunteer/profile/', views.get_volunteer_info),
+    path('hostel/upcoming/<int:id>/',
+         views.upcoming_students, name='upcoming_students')
 ]
