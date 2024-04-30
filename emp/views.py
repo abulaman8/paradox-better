@@ -130,6 +130,7 @@ def edit_event(request):
         event.save()
         cache.delete(f'event_{event_id}')
         cache.delete('all_events')
+        cache.delete('emp_all_events')
         with transaction.atomic():
             FAQ.objects.filter(
                 content_type=ContentType.objects.get_for_model(Event),
@@ -211,6 +212,7 @@ def delete_event(request):
         event = Event.objects.get(id=event_id)
         event.delete()
         cache.delete('all_events')
+        cache.delete('emp_all_events')
         return Response({'message': 'Event deleted successfully'}, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -246,6 +248,7 @@ def approve_event(request):
                 print(e)
             serializer = EventSerializer(event)
             cache.delete('all_events')
+            cache.delete('emp_all_events')
             return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -284,6 +287,7 @@ def disapprove_event(request):
                 print(e)
             serializer = EventSerializer(event)
             cache.delete('all_events')
+            cache.delete('emp_all_events')
             return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -796,6 +800,7 @@ def edit_event_form(request):
 
         serializer = FormSerializer(form)
         cache.delete(f'form_{event_id}')
+        cache.delete(f'emp_all_events')
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({'message': 'Event with the provided id not found'}, status=status.HTTP_400_BAD_REQUEST)

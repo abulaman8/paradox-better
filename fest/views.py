@@ -327,7 +327,7 @@ def get_events(request):
             return Response(all_events_cache, status=status.HTTP_200_OK)
         # events = Event.objects.prefetch_related('department').all()
         events = Event.objects.prefetch_related(
-            'department').filter(is_approved=True).all()
+            'department').filter(is_approved=True).all().order_by('registration_end_date')
 
     events_data = []
     for event in events:

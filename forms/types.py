@@ -47,7 +47,7 @@ class CheckboxGroupType:
 
 
 class ElementType:
-    def __init__(self, id: str, position: int, block_id: str, label: str, name: str, inputType: str, element: Union[InputType, SelectType, RadioGroupType, CheckboxGroupType]):
+    def __init__(self, id: str, position: int, block_id: str, label: str, name: str, inputType: str, element: Union[InputType, SelectType, RadioGroupType, CheckboxGroupType], show: bool = False):
         self.id = id
         self.position = position
         self.block_id = block_id
@@ -55,6 +55,7 @@ class ElementType:
         self.name = name
         self.inputType = inputType
         self.element = element
+        self.show = show
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any], input_type: str = "input") -> Union[InputType, SelectType, RadioGroupType, CheckboxGroupType]:
