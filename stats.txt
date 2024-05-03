@@ -1,0 +1,66 @@
+all reg fetched
+Total Registrations: 9317
+Tech Registrations: 3857
+Cult Registrations: 1239
+Sport Registrations: 4221
+Python Coding Challenge 3.0: 396
+Abulaman Test: 0
+DSA Triathlon: 302
+Paradox Premier League 24 Cricket: 452
+Paradox Unwind: The ShowDown: 13
+Becoming Billionaire: Monetizing your ideas: 488
+What’s In A Meme?: 156
+Fiction Flicks: 113
+CyberHack: 0
+Prerna: 137
+TEST EVENT: 0
+TEST EVENT 2: 0
+Tradequest: 272
+Pro Table Tennis Championship: 142
+Volley Vortex: 162
+Nukkad Natak: 53
+Kampus Run: 577
+Prakriti Pravah IITM Varnana: 22
+Anubhuti: 68
+Ranneeti 3.0: Free fire: 35
+Fault in the Flyers: 181
+Lift Off: 326
+Dramathon: 61
+Paradox Champions League: 233
+Madcap Masters: 53
+Ad Hoc Hullabaloo: 43
+Analytic Alchemy: 193
+Pitch-O-Con :  Marketing Case Study: 73
+Dimension Forge: 116
+Kagazanam Vasarabharanam: 15
+Shutter Safari: 180
+50 Ka Funda: 147
+Chalk Art Doodle War: 8
+Research summit'24: 36
+Squid Games: 625
+Kathalok: 66
+Fetchathon : 0
+Capitol Conclave: 88
+LogicLooM 2.0: 395
+Robo Soccer: 316
+Ultimate Sports Quiz: 92
+Worst Pitch Ever: 120
+Paradox Badminton League: 451
+Ranneeti 3.0: Valorant: 18
+Manish Test: 0
+Faces of Paradox: 101
+Drone Dash: 0
+IPL Arena: 255
+Dream2Dance 3.0: 49
+Clay Modeling: 122
+The Inter House Chess Championship 2024: 281
+Hack-o-pitch 3.0: 0
+MysterioMind Maze: 474
+Voices of Nature: 15
+Qutopia: 126
+Quest Explorer: 382
+Ranneeti 3.0: BGMI: 42
+Compassionathon: 11
+EncryptID: 235
+AI Agent Hackathon: 0
+Total Students: 2061

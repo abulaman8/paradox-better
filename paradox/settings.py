@@ -298,3 +298,27 @@ EMAIL_HOST = 'smtp.office365.com'
 EMAIL_HOST_USER = 'noreply@mail.iitmparadox.org'
 EMAIL_HOST_PASSWORD = 'Fuc80283'
 EMAIL_PORT = 587
+
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#         },
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': 'django_queries.log',  # Choose a file name and path
+#         },
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'handlers': ['console', 'file'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#     },
+# }

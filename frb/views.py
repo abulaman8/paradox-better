@@ -1,10 +1,12 @@
 from django.contrib.auth.models import Permission, Group, User
+from django.db import connection
 from django.http import HttpResponse
 from django.shortcuts import render
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from core.serializers import ActionSerializer
 from utils.decorators import has_requirement_perms, authed
 from utils.templates import req_approved_template, req_rejected_template
 from core.models import ApprovalStatus, Department, Event, Role
@@ -164,10 +166,104 @@ def create_requirement(request):
 
 @api_view(['GET'])
 @has_requirement_perms(['view_requirement'])
+def get_all_requirements_skeletal(request):
+    data = request.GET
+    event_id = int(data.get("event_id", 0))
+    id = int(data.get("dept_id", 0))
+    connection.force_debug_cursor = True
+    if event_id:
+        try:
+            event = Event.objects.get(id=event_id)
+            requirements = Requirement.objects.prefetch_related(
+                'approval_status',
+                'department',
+                'resource',
+                'resource__category',
+            ).exclude(approval_status__name="pending").exclude(approval_status__name="first_level_rejected").filter(event=event).all()
+            connection.force_debug_cursor = False
+            data = [{
+                "id": requirement.id,
+                "resource": requirement.resource.name,
+                "department": requirement.department.name,
+                "category": requirement.resource.category.name,
+                "approval_status": requirement.approval_status.name.split("_")[-1],
+                "approved_by": " ".join(requirement.approval_status.name.split("_")[:-1]).rstrip()
+
+            } for requirement in requirements]
+            return Response(
+                data,
+                status=status.HTTP_200_OK
+            )
+
+        except Event.DoesNotExist:
+            return Response({"message": "Event not found"})
+    elif id:
+        try:
+            department = Department.objects.get(id=id)
+            events = Event.objects.filter(department=department).all()
+            dept_requirements = Requirement.objects.prefetch_related(
+                'approval_status',
+                'department',
+                'resource',
+                'resource__category',
+            ).filter(
+                department=department).all()
+            event_requirements = Requirement.objects.prefetch_related(
+                'approval_status',
+                'department',
+                'resource',
+                'resource__category',
+            ).filter(
+                event__in=events).all()
+            requirements = dept_requirements.union(event_requirements)
+            connection.force_debug_cursor = False
+            data = [{
+                "id": requirement.id,
+                "resource": requirement.resource.name,
+                "department": requirement.department.name,
+                "category": requirement.resource.category.name,
+                "approval_status": requirement.approval_status.name.split("_")[-1],
+                "approved_by": " ".join(requirement.approval_status.name.split("_")[:-1]).rstrip()
+            } for requirement in requirements]
+            return Response(
+                data,
+                status=status.HTTP_200_OK
+            )
+        except Department.DoesNotExist:
+            return Response(
+                {"message": "Department not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    requirements = Requirement.objects.prefetch_related(
+        'approval_status',
+        'department',
+        'resource',
+        'resource__category',
+    ).exclude(approval_status__name="pending").exclude(approval_status__name="first_level_rejected").all()
+    connection.force_debug_cursor = False
+    data = [{
+        "id": requirement.id,
+        "resource": requirement.resource.name,
+        "department": requirement.department.name,
+        "category": requirement.resource.category.name,
+        "approval_status": requirement.approval_status.name.split("_")[-1],
+        "approved_by": " ".join(requirement.approval_status.name.split("_")[:-1]).rstrip()
+
+    } for requirement in requirements]
+    return Response(
+        data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@has_requirement_perms(['view_requirement'])
 def get_all_requirements(request):
     data = request.GET
     event_id = int(data.get("event_id", 0))
     id = int(data.get("dept_id", 0))
+    connection.force_debug_cursor = True
     if event_id:
         try:
             event = Event.objects.get(id=event_id)
@@ -201,8 +297,21 @@ def get_all_requirements(request):
             )
 
     requirements = Requirement.objects.prefetch_related(
-        'approval_status').exclude(approval_status__name="pending").exclude(approval_status__name="first_level_rejected").all()
+        'approval_status',
+        'author',
+        'department',
+        'department__core',
+        'event',
+        'event__head',
+        'sub_department',
+        'sub_department__team_lead',
+        'resource',
+        'resource__category',
+        'resource__unit_of_measure',
+        'actions'
+    ).exclude(approval_status__name="pending").exclude(approval_status__name="first_level_rejected").all()
     serialized = RequirementSerializer(requirements, many=True)
+    connection.force_debug_cursor = False
     return Response(
         serialized.data,
         status=status.HTTP_200_OK
@@ -221,34 +330,120 @@ def get_my_requirements(request):
 
 
 @api_view(['GET'])
-# @has_perms(['view_requirement'])
+@authed()
+def get_my_requirements_skeletal(request):
+    requirements = Requirement.objects.prefetch_related(
+        'approval_status',
+        'department',
+        'resource',
+        'resource__category',
+    ).filter(author=request.user)
+    data = [{
+        "id": requirement.id,
+        "resource": requirement.resource.name,
+        "department": requirement.department.name,
+        "category": requirement.resource.category.name,
+        "approval_status": requirement.approval_status.name.split("_")[-1],
+        "approved_by": " ".join(requirement.approval_status.name.split("_")[:-1]).rstrip()
+    } for requirement in requirements]
+    return Response(
+        data,
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
 @has_requirement_perms(['view_requirement'])
 def get_requirement(request, req_id):
     data = request.GET
     event_id = int(data.get("event_id", 0))
     id = int(data.get("dept_id", 0))
     try:
-        requirement = Requirement.objects.get(id=req_id)
-        dept = requirement.department
-        event = requirement.event
-        if (event and event_id and event.id != event_id) or (dept and id and dept.id != id):
-            if event:
-                print(event.id, event_id)
-            if dept:
-                print(dept.id, id)
-                print(type(dept.id), type(id))
-                print(dept.id != id)
+        requirement = Requirement.objects.prefetch_related(
+            'department',
+            'event',
+            'sub_department',
+            'author',
+            'resource',
+            'resource__category',
+            'resource__unit_of_measure',
+            'approval_status'
+        ).filter(id=req_id).get()
+        data = {
+            "id": requirement.id,
+            "description": requirement.description,
+            "department": requirement.department.name if requirement.department else None,
+            "event": requirement.event.name if requirement.event else None,
+            "sub_department": requirement.sub_department.name if requirement.sub_department else None,
+            'user': f"{requirement.author.last_name}" if requirement.author.first_name[0] == "2" else f"{requirement.author.first_name} {requirement.author.last_name}",
+            "resource": requirement.resource.name,
+            "category": requirement.resource.category.name,
+            "unit": requirement.resource.unit_of_measure.name,
+            "quantity": requirement.quantity,
+            "approval_status": requirement.approval_status.name.split("_")[-1],
+            "approved_by": " ".join(requirement.approval_status.name.split("_")[:-1]).rstrip(),
+            "arrangement_source": requirement.arrangement_source
 
-            return Response(
-                {"message": "Requirement not found, wink wink"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        serialized = RequirementSerializer(requirement)
+
+        }
+        return Response(
+            data,
+            status=status.HTTP_200_OK
+        )
+
+    except Requirement.DoesNotExist:
+        return Response(
+            {"message": "Requirement not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+# @api_view(['GET'])
+# # @has_perms(['view_requirement'])
+# @has_requirement_perms(['view_requirement'])
+# def get_requirement(request, req_id):
+#     data = request.GET
+#     event_id = int(data.get("event_id", 0))
+#     id = int(data.get("dept_id", 0))
+#     try:
+#         requirement = Requirement.objects.get(id=req_id)
+#         dept = requirement.department
+#         event = requirement.event
+#         if (event and event_id and event.id != event_id) or (dept and id and dept.id != id):
+#             if event:
+#                 print(event.id, event_id)
+#             if dept:
+#                 print(dept.id, id)
+#                 print(type(dept.id), type(id))
+#                 print(dept.id != id)
+#
+#             return Response(
+#                 {"message": "Requirement not found, wink wink"},
+#                 status=status.HTTP_404_NOT_FOUND
+#             )
+#         serialized = RequirementSerializer(requirement)
+#         return Response(
+#             serialized.data,
+#             status=status.HTTP_200_OK
+#         )
+#
+#     except Requirement.DoesNotExist:
+#         return Response(
+#             {"message": "Requirement not found"},
+#             status=status.HTTP_404_NOT_FOUND
+#         )
+#
+
+
+@api_view(['GET'])
+@has_requirement_perms(['view_requirement'])
+def get_requirement_messages(request, req_id):
+    try:
+        requirement = Requirement.objects.get(id=req_id)
+        actions = requirement.actions.all()  # type: ignore
+        serialized = ActionSerializer(actions, many=True)
         return Response(
             serialized.data,
             status=status.HTTP_200_OK
         )
-
     except Requirement.DoesNotExist:
         return Response(
             {"message": "Requirement not found"},
