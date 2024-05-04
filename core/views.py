@@ -5,7 +5,7 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Department, Role, ApprovalStatus, Blacklist
+from .models import CustomRole, Department, Role, ApprovalStatus, Blacklist
 from core.serializers import DepartmentDetailSerializer, DepartmentSerializer, PermissionSerializer, RoleSerializer, UserSerializer, ApprovalStatusSerializer
 from utils.decorators import authed, has_perms, group_required
 
@@ -23,7 +23,7 @@ def create_group(request):
     data = request.data
     name = data.get('name')
     try:
-        group, created = Group.objects.get_or_create(name=name)
+        group, created = CustomRole.objects.get_or_create(name=name)
         if not created:
             return Response({'message': 'Group already exists'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -64,6 +64,13 @@ def get_all_groups(request):
     groups = Group.objects.all()
     names = [group.name for group in groups]
     return Response(names, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_all_custom_roles(request):
+    custom_roles = CustomRole.objects.all()
+    data = [cr.name for cr in custom_roles]
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -359,13 +366,14 @@ def assign_dept_user_roles(request):
     members = data.get('members')
     try:
         dept = Department.objects.get(id=id)
+        cr = CustomRole.objects.get(name=name)
     except Department.DoesNotExist:
         return Response({'error': 'Department not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    role = Role.objects.filter(name=name, content_type=ContentType.objects.get_for_model(
-        Department), object_id=dept.id)
-    if not role.exists():
+    except CustomRole.DoesNotExist:
         return Response({'error': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    role, _ = Role.objects.get_or_create(
+        role=name, content_type=ContentType.objects.get_for_model(Department), object_id=dept.id)
 
     member_objects = []
     for member in members:
@@ -373,11 +381,7 @@ def assign_dept_user_roles(request):
             member_objects.append(User.objects.get(email=member))
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-    role = role.first()
-    if role:
-        role.users.add(*member_objects)
-    else:
-        return Response({'error': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
+    role.users.add(*member_objects)
     return Response({'message': 'Roles created'}, status=status.HTTP_201_CREATED)
 
 

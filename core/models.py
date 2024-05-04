@@ -167,6 +167,14 @@ class Role(models.Model):
         return f'{self.name} - {str(self.content_object)}'
 
 
+class CustomRole(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=128, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Link(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)

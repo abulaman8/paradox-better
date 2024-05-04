@@ -16,7 +16,7 @@ urlpatterns = [
          views.add_members, name='add_members'),
     path('department/remove/members/',
          views.delete_members, name='delete_members'),
-    path('roles/all/', views.get_all_groups, name='get_all_groups'),
+    path('roles/all/', views.get_all_custom_roles, name='get_all_custom_roles'),
     path('roles/create/', views.create_group, name='create_group'),
     path('roles/department/assign/members/',
          views.assign_dept_user_roles, name='assign_roles'),
