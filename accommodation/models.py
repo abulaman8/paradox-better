@@ -19,6 +19,9 @@ class OTP(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
 
+    def __str__(self):
+        return f"{self.student.email} - {self.otp}"
+
 
 class Hostel(models.Model):
     id = models.AutoField(primary_key=True)
@@ -52,6 +55,7 @@ class Accommadation(models.Model):
         Supply, blank=True, related_name='supplies_given')
     supplies_returned = models.ManyToManyField(
         Supply, blank=True, related_name='supplies_returned')
+    supplies_checked_out = models.BooleanField(default=False)
 
     def __str__(self):
         return self.student.email + " - " + self.hostel.name + " - " + self.mess.name

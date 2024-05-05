@@ -24,6 +24,29 @@ def get_all_supplies(request):
 
 @api_view(['GET'])
 @authed()
+def get_all_hostels(request):
+    hostels = Hostel.objects.all()
+    return Response([{
+        'name': hostel.name,
+        'id': hostel.id
+    } for hostel in hostels])
+
+
+@api_view(['GET'])
+@authed()
+def get_code_by_email(request, email):
+    try:
+        student = Student.objects.get(email=email)
+        code = QrCode.objects.get(student=student)
+        return Response({
+            'code': code.code
+        })
+    except User.DoesNotExist:
+        return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@authed()
 def get_user_accommodation(request, id):
     try:
         student = Student.objects.get(id=id)
@@ -47,7 +70,8 @@ def get_user_accommodation(request, id):
 
 
 @api_view(['PUT'])
-@has_perms(['change_accommadation'])
+# @has_perms(['change_accommadation'])
+@authed()
 def check_in(request, id):
     try:
         student = Student.objects.get(id=id)
@@ -62,7 +86,7 @@ def check_in(request, id):
 
 
 @api_view(['PUT'])
-@has_perms(['change_accommadation'])
+# @has_perms(['change_accommadation'])
 def check_out(request, id):
     try:
         student = Student.objects.get(id=id)
@@ -92,6 +116,7 @@ def request_supply_give_otp(request, id):
         for supply in supply_objects:
             if supply in accommadation.supplies_given.all():
                 return Response({'message': f'{supply.name} already given'}, status=status.HTTP_400_BAD_REQUEST)
+        old_otps = OTP.objects.filter(student=student).all().delete()
         otp = OTP.objects.create(
             student=student,
             otp=''.join([str(random.randint(0, 9)) for _ in range(6)]),
@@ -151,6 +176,7 @@ def request_supply_return_otp(request, id):
         data = request.data
         supply_ids = data.get('Item IDs')
         supply_objects = Supply.objects.filter(id__in=supply_ids).all()
+        old_otps = OTP.objects.filter(student=student).all().delete()
         otp = OTP.objects.create(
             student=student,
             otp=''.join([str(random.randint(0, 9)) for _ in range(6)]),
@@ -193,6 +219,7 @@ def submit_supply_return_otp(request, id):
             return Response({'message': 'OTP expired'}, status=status.HTTP_400_BAD_REQUEST)
         supplies = otp.supplies.all()
         accommadation.supplies_returned.add(*supplies)
+        accommadation.supplies_checked_out = True
         accommadation.save()
         otp.delete()
         return Response({'message': 'OTP verified'}, status=status.HTTP_200_OK)
@@ -292,6 +319,20 @@ def upcoming_students(request, id):
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         students.append({
             'name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
-            'email': user.email
+            'email': user.email,
+            'roomNo': acc.room
         })
     return Response(students, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authed()
+def can_check_out(request, id):
+    try:
+        student = Student.objects.get(id=id)
+        accommadation = Accommadation.objects.filter(student=student).first()
+        if not accommadation:
+            return Response({'message': 'No Accommodation found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'canCheckOut': accommadation.supplies_checked_out}, status=status.HTTP_200_OK)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
