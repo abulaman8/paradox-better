@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		body {
+			margin: 0 20px 0 20px;
+			font-family: Arial, Helvetica, sans-serif;
+			position: relative;
+		}
+		header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 70px;
+		}
+		.header {
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+		}
+		.info {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 45px;
+			margin-bottom: 15px;
+		}
+		.vn, .date, .type, .department {
+			display: flex;
+			flex-direction: column;
+			text-align: center;
+		}
+		.details {
+			margin-top: 15px;
+			margin-bottom: 15px;
+			display: flex;
+			flex-direction: column;
+			text-align: center;
+			justify-content: center;
+		}
+		table {
+			width: 100%;
+			border: 1px solid black;
+			text-align: left;
+			margin-bottom: 45px;
+		}
+		td {
+			border: 1px solid black;
+			padding: 5px;
+		}
+		.description {
+			text-align: center;
+			margin-bottom: 15px;
+		}
+		footer {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 45px;
+			width: 90%;
+			margin: 0 auto;
+		}
+		.total {
+			display: flex;
+			flex-direction: column-reverse;
+		}
+		.core-signature {
+			display: flex;
+			flex-direction: column-reverse;
+
+		}
+		.sup-coord-signature {
+			display: flex;
+			flex-direction: column-reverse;
+		}
+		.big{
+			font-size: 2rem;
+		}
+	</style>
+</head>
+
+<body>
+	<header>
+		<img src="{{logo}}" alt="Left Logo" width="100px">
+		<div class="header">
+			<h1>Payment Voucher</h1>
+			<span>IITM Student Activities Trust</span>
+			<span>(IITM Online Degree Programme)</span>
+			<span>Dean of Student Office</span>
+			<span>IIT Madras</span>
+			<span>Chennai - 600036</span>
+		</div>
+		<img src="{{stact}}" alt="Right Logo" width="100px">
+	</header>
+	<hr>
+	<div class="info">
+		<div class="vn">
+			<span><b>Voucher No.</b></span>
+			<span>{{ voucher_number }}</span>
+		</div>
+		<div class="date">
+			<span><b>Date</b></span>
+			<span>{{ date }}</span>
+		</div>
+		<div class="type">
+			<span><b>Type</b></span>
+			<span>{{ type }}</span>
+		</div>
+		<div class="department">
+			<span><b>Department</b></span>
+			<span>{{ dept }}</span>
+		</div>
+
+	</div>
+	<div class="details">
+		<p class="big">Vendor Details</p>
+		<table>
+			<tr>
+				<td><b>Bill Number</b></td>
+				<td>{{ bill_number }}</td>
+			</tr>
+			<tr>
+				<td><b>Vendor Name</b></td>
+				<td>{{ vendor }}</td>
+			</tr>
+			<tr>
+				<td><b>Vendor Address</b></td>
+				<td>{{ vendor_address }}</td>
+			</tr>
+			<tr>
+				<td><b>GST Number</b></td>
+				<td>{{ gst_number }}</td>
+			</tr>
+
+		</table>
+		<p class="big">Vendor Bank Details</p>
+		<table>
+			<tr>
+				<td><b>Account Number</b></td>
+				<td>{{ account_number }}</td>
+			</tr>
+			<tr>
+				<td><b>Account Holder Name</b></td>
+				<td>{{ account_holder }}</td>
+			</tr>
+			<tr>
+				<td><b>Bank Name</b></td>
+				<td>{{ bank }}</td>
+			</tr>
+			<tr>
+				<td><b>IFSC Code</b></td>
+				<td>{{ ifsc }}</td>
+			</tr>
+
+		</table>
+
+	</div>
+	<div class="description">
+		<p class="big">Description</p>
+		<p>{{ description }}</p>
+		<table>
+			<tr>
+				<td><b>Total</b></td>
+				<td>{{ total }}</td>
+			</tr>
+
+		</table>
+		<p><i>Note: Kindly ensure the above details are correct and match the invoice.</i></p>
+
+	</div>
+
+	<footer>
+		<div class="core-signature">
+			<span><b>Finance core</b></span>
+			<img src="{{ sign }}" alt="Finance Core" width="150px">
+		</div>
+		<div class="core-signature">
+			<span><b>Faculty Advisor</b></span>
+			<img src="{{ sign }}" alt="Faculty Advisor" width="150px">
+		</div>
+		<div class="sup-coord-signature">
+			<span><b>Managing Trustee</b></span>
+			<img src="{{sign}}" alt="Managing Trustee" width="150px">
+		</div>
+
+	</footer>
+</body>
+
+</html>

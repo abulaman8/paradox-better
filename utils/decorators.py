@@ -103,12 +103,25 @@ def has_perms(perms: list):
                 event = None
             # print(f"department: {department}")
             secretary_group = Group.objects.get(name='secretary')
-            if secretary_group not in user.groups.all():
-                permissions = Permission.objects.filter(
-                    codename__in=perms).all()
-                # print(f"permissions: {permissions}")
-                user_permissions = get_user_permissions(user)
+            user_permissions = get_user_permissions(user)
+            found = 0
+            groups = user.groups.all()
+            all_group_permissions = [
+                perm for group in groups for perm in user_permissions['groups'][group.name]]
+            # print(f"all_group_permissions: {all_group_permissions}")
+            permissions = Permission.objects.filter(
+                codename__in=perms).all()
+            # print(f"permissions: {permissions}")
 
+            for perm in permissions:
+                if perm in all_group_permissions:
+                    found += 1
+            if found != len(permissions):
+                found = False
+            else:
+                found = True
+            # print(f"found: {found}")
+            if secretary_group not in user.groups.all() and not found:
                 if event:
                     for perm in permissions:
                         if perm not in user_permissions['events'].get(event.id, []):

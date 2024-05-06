@@ -373,7 +373,7 @@ def assign_dept_user_roles(request):
         return Response({'error': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
 
     role, _ = Role.objects.get_or_create(
-        role=name, content_type=ContentType.objects.get_for_model(Department), object_id=dept.id)
+        name=name, content_type=ContentType.objects.get_for_model(Department), object_id=dept.id)
 
     member_objects = []
     for member in members:

@@ -6,10 +6,57 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from core.models import Student, QrCode
-from utils.decorators import has_perms, authed
-from .models import Accommadation, Hostel, Supply, OTP, AccomVolunteer
+from utils.decorators import authed
+from .models import Accommadation, Hostel, Supply, OTP, AccomVolunteer, Mess
 from datetime import datetime, timedelta
 import random
+from .decorators import has_accom_perms
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_hostel'])
+def add_hostel(request):
+    data = request.data
+    name = data.get('name')
+    if Hostel.objects.filter(name=name).exists():
+        return Response({'message': 'Hostel already exists'}, status=status.HTTP_400_BAD_REQUEST)
+    Hostel.objects.create(name=name)
+    return Response({'message': 'Hostel created'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_supply'])
+def add_supply(request):
+    data = request.data
+    name = data.get('name')
+    if Supply.objects.filter(name=name).exists():
+        return Response({'message': 'Supply already exists'}, status=status.HTTP_400_BAD_REQUEST)
+    Supply.objects.create(name=name)
+    return Response({'message': 'Supply created'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_mess'])
+def add_mess(request):
+    data = request.data
+    name = data.get('name')
+    floor = data.get('floor')
+    caterer = data.get('caterer')
+    if Mess.objects.filter(name=name, caterer=caterer, floor=floor).exists():
+        return Response({'message': 'Mess already exists'}, status=status.HTTP_400_BAD_REQUEST)
+    Mess.objects.create(name=name, floor=floor, caterer=caterer)
+    return Response({'message': 'Mess created'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@has_accom_perms(['view_mess'])
+def get_all_mess(request):
+    mess = Mess.objects.all()
+    return Response([{
+        'name': mess.name,
+        'floor': mess.floor,
+        'caterer': mess.caterer
+    } for mess in mess], status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

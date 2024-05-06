@@ -553,10 +553,28 @@ def first_level_approval(request, bill_id):
 def final_level_approval(request, bill_id):
     data = request.data
     try:
-        bill = Bill.objects.get(id=bill_id)
-        bill.approval_status = ApprovalStatus.objects.get(
-            name='final_level_approved')
-        bill.save()
+        with transaction.atomic():
+            bill = Bill.objects.select_for_update().get(id=bill_id)
+            if bill.approval_status.name == 'final_level_approved':
+                return Response({
+                    "message": "Bill already approved"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            bill.approval_status = ApprovalStatus.objects.get(
+                name='final_level_approved')
+            bill.save()
+            account = bill.account
+            dept = Department.objects.filter(account=account).first()
+            event = Event.objects.filter(department=dept).first()
+            if event:
+                dept = event.department if event else None
+            dept_account = dept.account if dept else None
+            cred = CreditTransaction.objects.create(
+                account=dept_account,
+                amount=bill.amount,
+                description=bill.description,
+                txn_type='bill_payment',
+                bill=bill
+            )
         try:
             from_email = f"Finance & Requirements <{settings.EMAIL_HOST_USER}>"
             to = bill.author.email
