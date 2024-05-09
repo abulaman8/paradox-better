@@ -6,6 +6,7 @@ from django.core.files.base import ContentFile
 from core.models import Department, Role, Event, SubDepartment
 from finance.models import Bill, Voucher, VoucherType
 from .templates import voucher_template, stact, sign, paradox_new_logo, empty
+from weasyprint import HTML
 import pdfkit
 import uuid
 
@@ -102,7 +103,8 @@ def generate_voucher(bill_id):
     context = Context(data)
 
     voucher = template.render(context)
-    pdf_file = pdfkit.from_string(voucher)
+    # pdf_file = pdfkit.from_string(voucher)
+    pdf_file = HTML(string=voucher).write_pdf()
     voucher = Voucher.objects.create(
         bill=bill,
         voucher_type=voucher_type,
