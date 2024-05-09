@@ -30,6 +30,7 @@ urlpatterns = [
     path('transactions/', views.get_transactions, name='get_transactions'),
     path('transactions/<str:txn_type>/', views.get_txn_by_type,
          name='get_transactions_by_type'),
+    path('dummy/', views.gen_dummy_vouch, name='gen_dummy_vouch'),
 
 
 

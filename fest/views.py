@@ -636,7 +636,7 @@ def edit_event_registration(request):
                 )
         students = Student.objects.filter(email__in=email_list).all()
         for stu in students:
-            if not FestRegistrstion.objects.filter(student=stu, event=event).exists():
+            if not FestRegistrstion.objects.filter(student=stu).exists():
                 return Response(
                     {'message': f'user with email {stu.email} not registered for fest'}, status=status.HTTP_404_NOT_FOUND
                 )

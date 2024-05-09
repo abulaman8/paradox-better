@@ -691,3 +691,9 @@ def get_all_approved_requirements(request):
         approval_status=ApprovalStatus.objects.get(name='final_level_approved')).all()
     serialized = RequirementSerializer(requirements, many=True)
     return Response(serialized.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def gen_dummy_vouch(request):
+    generate_voucher(10)
+    return Response({'message': 'dummy voucher generated'})

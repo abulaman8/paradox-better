@@ -1,66 +1,66 @@
 all reg fetched
-Total Registrations: 10101
-Tech Registrations: 4262
-Cult Registrations: 1364
-Sport Registrations: 4479
-Python Coding Challenge 3.0: 433
+Total Registrations: 11426
+Tech Registrations: 4845
+Cult Registrations: 1647
+Sport Registrations: 4935
+Python Coding Challenge 3.0: 479
+What’s In A Meme?: 196
+Becoming Billionaire: Monetizing your ideas: 613
+Paradox Premier League 24 Cricket: 529
+Paradox Unwind: The ShowDown: 23
+Prerna: 159
 Abulaman Test: 0
-Prerna: 138
-Paradox Premier League 24 Cricket: 474
-Paradox Unwind: The ShowDown: 15
-Becoming Billionaire: Monetizing your ideas: 551
-What’s In A Meme?: 170
-DSA Triathlon: 316
-Fiction Flicks: 122
+DSA Triathlon: 341
+Fiction Flicks: 139
 CyberHack: 0
 TEST EVENT: 0
 TEST EVENT 2: 0
-Tradequest: 297
-Pro Table Tennis Championship: 159
-Volley Vortex: 166
-Nukkad Natak: 65
-Kampus Run: 615
-Prakriti Pravah IITM Varnana: 27
-Anubhuti: 70
-Ranneeti 3.0: Free fire: 35
-Fault in the Flyers: 202
-Lift Off: 356
-Dramathon: 71
-Paradox Champions League: 249
-Madcap Masters: 59
-Ad Hoc Hullabaloo: 51
-Analytic Alchemy: 209
-Pitch-O-Con :  Marketing Case Study: 82
-Dimension Forge: 128
-Kagazanam Vasarabharanam: 15
-Shutter Safari: 193
-50 Ka Funda: 161
-Chalk Art Doodle War: 11
-Research summit'24: 61
+Tradequest: 328
+Pro Table Tennis Championship: 181
+Volley Vortex: 193
+Nukkad Natak: 72
+Kampus Run: 675
+Prakriti Pravah IITM Varnana: 33
+Anubhuti: 87
+Ranneeti 3.0: Free fire: 40
+Fault in the Flyers: 228
+Lift Off: 390
+Dramathon: 85
+Paradox Champions League: 270
+Madcap Masters: 71
+Ad Hoc Hullabaloo: 65
+Analytic Alchemy: 238
+Pitch-O-Con :  Marketing Case Study: 93
+Dimension Forge: 153
+Kagazanam Vasarabharanam: 16
+Shutter Safari: 226
+50 Ka Funda: 187
+Chalk Art Doodle War: 18
+Research summit'24: 111
 Squid Games: 624
-Kathalok: 74
+Kathalok: 91
 Fetchathon : 0
-Capitol Conclave: 96
-LogicLooM 2.0: 433
-Robo Soccer: 346
-Ultimate Sports Quiz: 97
-Worst Pitch Ever: 136
-Paradox Badminton League: 493
-Ranneeti 3.0: Valorant: 18
+Capitol Conclave: 114
+LogicLooM 2.0: 502
+Robo Soccer: 372
+Ultimate Sports Quiz: 115
+Worst Pitch Ever: 157
+Paradox Badminton League: 556
+Ranneeti 3.0: Valorant: 23
 Manish Test: 0
+Dream2Dance 3.0: 83
 Drone Dash: 0
-IPL Arena: 266
-Dream2Dance 3.0: 57
-Clay Modeling: 132
-Faces of Paradox: 105
-The Inter House Chess Championship 2024: 307
+IPL Arena: 293
+Clay Modeling: 156
+Faces of Paradox: 114
+The Inter House Chess Championship 2024: 346
 Hack-o-pitch 3.0: 0
-MysterioMind Maze: 517
-Voices of Nature: 22
-Qutopia: 135
-Quest Explorer: 414
-Ranneeti 3.0: BGMI: 46
-Compassionathon: 12
-EncryptID: 257
-AI Agent Hackathon: 23
-Total Students: 2206
+MysterioMind Maze: 576
+Voices of Nature: 33
+Qutopia: 164
+Quest Explorer: 459
+Ranneeti 3.0: BGMI: 55
+Compassionathon: 11
+EncryptID: 284
+AI Agent Hackathon: 60
+Total Students: 2433

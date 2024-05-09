@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from core.models import Student, QrCode
+from fest.models import AccomodationRegistration
 from utils.decorators import authed
 from .models import Accommadation, Hostel, Supply, OTP, AccomVolunteer, Mess
 from datetime import datetime, timedelta
@@ -345,7 +346,7 @@ def get_volunteer_info(request):
     return Response({
         "name": f"{user.first_name} {user.last_name}",
         "email": user.email,
-        "hostels": [hostel.name for hostel in volunteer.hostels.all()]
+        "hostels": [{"id": hostel.id, "name": hostel.name} for hostel in volunteer.hostels.all()]
     })
 
 
@@ -383,3 +384,182 @@ def can_check_out(request, id):
         return Response({'canCheckOut': accommadation.supplies_checked_out}, status=status.HTTP_200_OK)
     except Student.DoesNotExist:
         return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@authed()
+def get_hostel_stats(request, id):
+    try:
+        hostel = Hostel.objects.get(id=id)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+    accom = Accommadation.objects.prefetch_related('student').filter(
+        hostel=hostel).all()
+    data = {}
+    data["checked_in"] = []
+    data["checked_out"] = []
+    data["pending"] = []
+    for acc in accom:
+        if acc.check_out:
+            user = User.objects.filter(email=acc.student.email).first()
+            if not user:
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            data["checked_out"].append({
+                'name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+                'email': acc.student.email
+            })
+        elif acc.check_in:
+            user = User.objects.filter(email=acc.student.email).first()
+            if not user:
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            data["checked_in"].append({
+                'name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+                'email': acc.student.email
+            })
+        else:
+            user = User.objects.filter(email=acc.student.email).first()
+            if not user:
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            data["pending"].append({
+                'name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+                'email': acc.student.email
+            })
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_accommadation'])
+def add_accom_entry(request):
+    data = request.data
+    email = data.get('email')
+    hostel_id = data.get('hostel')
+    room = data.get('room')
+    mess_id = data.get('mess')
+    try:
+        student = Student.objects.get(email=email)
+        if not AccomodationRegistration.objects.filter(student=student).exists():
+            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
+        hostel = Hostel.objects.get(id=hostel_id)
+        mess = Mess.objects.get(id=mess_id)
+        exists = Accommadation.objects.filter(student=student).exists()
+        if exists:
+            return Response({'message': 'Accommodation already exists for this student'}, status=status.HTTP_400_BAD_REQUEST)
+        accom = Accommadation.objects.create(
+            student=student,
+            room=room,
+            mess=mess,
+            hostel=hostel
+        )
+        return Response({'message': 'Accommodation added'}, status=status.HTTP_200_OK)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Mess.DoesNotExist:
+        return Response({'message': 'Mess not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PUT'])
+@has_accom_perms(['change_accommadation'])
+def edit_accom_entry(request):
+    data = request.data
+    email = data.get('email')
+    hosel_id = data.get('hostel')
+    room = data.get('room')
+    mess_id = data.get('mess')
+    try:
+        student = Student.objects.get(email=email)
+        if not AccomodationRegistration.objects.filter(student=student).exists():
+            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
+        accom = Accommadation.objects.filter(student=student).first()
+        if not accom:
+            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
+        mess = Mess.objects.get(id=mess_id)
+        hostel = Hostel.objects.get(id=hosel_id)
+
+        accom.room = room
+        accom.mess = mess
+        accom.hostel = hostel
+        accom.save()
+        return Response({'message': 'Accommodation edited'}, status=status.HTTP_200_OK)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Mess.DoesNotExist:
+        return Response({'message': 'Mess not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@has_accom_perms(['delete_accommadation'])
+def delete_accom_entry(request):
+    data = request.data
+    email = data.get('email')
+    try:
+        student = Student.objects.get(email=email)
+        if not AccomodationRegistration.objects.filter(student=student).exists():
+            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
+        Accommadation.objects.filter(student=student).delete()
+        return Response({'message': 'Accommodation deleted'}, status=status.HTTP_200_OK)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_accomvolunteer'])
+def add_accom_volunteer(request):
+    data = request.data
+    email = data.get('email')
+    hostels = data.get('hostels')
+    try:
+        hostel_objs = [Hostel.objects.get(id=id) for id in hostels]
+        student = Student.objects.get(email=email)
+        exists = AccomVolunteer.objects.filter(student=student).exists()
+        if exists:
+            return Response({'message': 'Accommodation volunteer already exists for this student'}, status=status.HTTP_400_BAD_REQUEST)
+
+        accom = AccomVolunteer.objects.create(
+            student=student
+        )
+        accom.hostels.set(hostel_objs)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@has_accom_perms(['delete_accomvolunteer'])
+def delete_accom_volunteer(request):
+    data = request.data
+    email = data.get('email')
+    try:
+        student = Student.objects.get(email=email)
+        if not AccomVolunteer.objects.filter(student=student).exists():
+            return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+        AccomVolunteer.objects.filter(student=student).delete()
+        return Response({'message': 'Accommodation volunteer deleted'}, status=status.HTTP_200_OK)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PUT'])
+@has_accom_perms(['change_accomvolunteer'])
+def edit_accom_volunteer(request):
+    data = request.data
+    email = data.get('email')
+    hostels = data.get('hostels')
+    try:
+        student = Student.objects.get(email=email)
+        if not AccomVolunteer.objects.filter(student=student).exists():
+            return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+        accom = AccomVolunteer.objects.filter(student=student).first()
+        if not accom:
+            return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+        accom.hostels.set(hostels)
+        accom.save()
+        return Response({'message': 'Accommodation volunteer edited'}, status=status.HTTP_200_OK)
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)

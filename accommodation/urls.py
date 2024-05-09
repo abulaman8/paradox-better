@@ -31,5 +31,6 @@ urlpatterns = [
     path('hostel/all', views.get_all_hostels, name='get_all_hostels'),
     path('hostel/add/', views.add_hostel, name='add_hostel'),
     path('hostel/upcoming/<int:id>/',
-         views.upcoming_students, name='upcoming_students')
+         views.upcoming_students, name='upcoming_students'),
+    path('hostel/stats/<int:id>/', views.get_hostel_stats, name='get_hostel_stats')
 ]

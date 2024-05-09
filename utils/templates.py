@@ -21,6 +21,10 @@ with open('utils/paradox_new_logo.png', 'rb') as f:
 with open('utils/subhash.png', 'rb') as f:
     sign = base64.b64encode(f.read()).decode('utf-8')
 
+
+with open('utils/empty.png', 'rb') as f:
+    empty = base64.b64encode(f.read()).decode('utf-8')
+
 req_approved_template = """
 <!DOCTYPE html>
 <html lang="en">
