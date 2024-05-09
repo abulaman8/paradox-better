@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<!-- add webkit compatible css in style -->
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,23 +12,29 @@
 			position: relative;
 		}
 		header {
+			display: -webkit-box;
 			display: flex;
+			-webkit-box-pack: justify;
 			justify-content: space-between;
 			align-items: center;
 			margin-bottom: 70px;
 		}
 		.header {
 			text-align: center;
+			display: -webkit-box;
 			display: flex;
 			flex-direction: column;
 		}
 		.info {
+			display: -webkit-box;
 			display: flex;
+			-webkit-box-pack: justify;
 			justify-content: space-between;
 			margin-top: 45px;
 			margin-bottom: 15px;
 		}
 		.vn, .date, .type, .department {
+			display: -webkit-box;
 			display: flex;
 			flex-direction: column;
 			text-align: center;
@@ -36,9 +42,12 @@
 		.details {
 			margin-top: 15px;
 			margin-bottom: 15px;
+			display: -webkit-box;
 			display: flex;
+
 			flex-direction: column;
 			text-align: center;
+			-webkit-box-pack: center;
 			justify-content: center;
 		}
 		table {
@@ -56,23 +65,32 @@
 			margin-bottom: 15px;
 		}
 		footer {
+			display: -webkit-box;
 			display: flex;
+			-webkit-box-pack: justify;
 			justify-content: space-between;
 			margin-top: 45px;
 			width: 90%;
 			margin: 0 auto;
 		}
 		.total {
+			display: -webkit-box;
 			display: flex;
+			-webkit-box-direction: reverse;
 			flex-direction: column-reverse;
+	
 		}
 		.core-signature {
+			display: -webkit-box;
 			display: flex;
+			-webkit-box-direction: reverse;
 			flex-direction: column-reverse;
 
 		}
 		.sup-coord-signature {
+			display: -webkit-box;
 			display: flex;
+			-webkit-box-direction: reverse;
 			flex-direction: column-reverse;
 		}
 		.big{
