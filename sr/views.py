@@ -1,9 +1,13 @@
 from django.shortcuts import render
-from core.models import Event
+from django.contrib.auth.models import User
+from django.db.models import Q
+from core.models import Event, QrCode, Student
 from utils.decorators import authed, has_perms
 from rest_framework.response import Response
 from rest_framework import status
-from .models import SrVolunteer
+from emp.models import RegData
+from fest.models import FestRegistrstion
+from .models import EventCheckin, FestCheckin, SrVolunteer
 from rest_framework.decorators import api_view
 
 
@@ -24,7 +28,7 @@ def get_volunteer_info(request):
     })
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authed()
 def get_event_info(request, event_id):
     try:
@@ -37,3 +41,90 @@ def get_event_info(request, event_id):
         })
     except Event.DoesNotExist:
         return Response({'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@authed()
+def get_all_events(request):
+    events = Event.objects.all()
+    return Response([{
+        event.id: event.name
+    } for event in events])
+
+
+@api_view(['GET'])
+@authed()
+def get_code_by_email(request, email):
+    try:
+        student = Student.objects.get(email=email)
+        code = QrCode.objects.get(student=student)
+        return Response({
+            'code': code.code
+        })
+    except User.DoesNotExist:
+        return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@authed()
+def event_checkin(request, event_id, code):
+    try:
+        qr = QrCode.objects.get(code=code)
+        event = Event.objects.get(id=event_id)
+        student = qr.student
+        if not FestCheckin.objects.filter(student=student).exists():
+            return Response({'message': 'Fest Checkin incomplete'}, status=status.HTTP_404_NOT_FOUND)
+        volunteer = SrVolunteer.objects.get(user=request.user)
+        if event not in volunteer.events.all():
+            return Response({'message': 'Volunteer not authorized'}, status=status.HTTP_404_NOT_FOUND)
+        user = User.objects.filter(email=student.email).first()
+        if not user:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        reg = RegData.objects.filter(event=event).filter(
+            Q(student=student) | Q(students__in=[student])).first()
+        if not reg:
+            return Response({'message': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
+        ec, created = EventCheckin.objects.get_or_create(
+            student=student,
+            event=event
+        )
+        if created:
+            ec.volunteer = volunteer
+            ec.save()
+            return Response({'message': 'Checkin successful'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Already checked in'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except QrCode.DoesNotExist:
+        return Response({'message': 'Invalid QR code'}, status=status.HTTP_404_NOT_FOUND)
+    except Event.DoesNotExist:
+        return Response({'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
+    except SrVolunteer.DoesNotExist:
+        return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@authed()
+def fest_checkin(request, code):
+    try:
+        qr = QrCode.objects.get(code=code)
+        student = qr.student
+        volunteer = SrVolunteer.objects.get(user=request.user)
+        if not volunteer.can_do_central_checkin:
+            return Response({'message': 'Volunteer not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        reg = FestRegistrstion.objects.filter(student=student).first()
+        if not reg:
+            return Response({'message': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
+        ec, created = FestCheckin.objects.get_or_create(
+            student=student
+        )
+        if created:
+            ec.volunteer = volunteer
+            ec.save()
+            return Response({'message': 'Checkin successful'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Already checked in'}, status=status.HTTP_400_BAD_REQUEST)
+    except QrCode.DoesNotExist:
+        return Response({'message': 'Invalid QR code'}, status=status.HTTP_404_NOT_FOUND)
+    except SrVolunteer.DoesNotExist:
+        return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)

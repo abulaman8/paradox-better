@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'forms',
     'accommodation',
     'utils',
+    'sr',
 ]
 
 SIMPLE_JWT = {

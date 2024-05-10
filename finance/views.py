@@ -585,7 +585,15 @@ def final_level_approval(request, bill_id):
             mail.send()
         except Exception as e:
             print(e)
-        # generate_voucher(bill.id)
+        try:
+            generate_voucher(bill.id)
+        except Exception as e:
+            print(e)
+            serializer = BillSerializer(bill)
+            return Response({
+                'message': 'Bill approved successfully, but voucher not generated',
+                'bill': serializer.data
+            }, status=status.HTTP_200_OK)
         serializer = BillSerializer(bill)
         return Response({
             'message': 'Bill approved successfully',
