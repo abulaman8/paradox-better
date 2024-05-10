@@ -32,6 +32,14 @@ urlpatterns = [
     path('blacklist/all/', views.get_blacklist, name='get_blacklist'),
     path('blacklist/<int:id>/delete/',
          views.remove_blacklist, name='delete_blacklist'),
+    path('announcement/add/', views.create_announcement,
+         name='create_announcement'),
+    path('announcement/edit/<int:id>/', views.update_announcement,
+         name='update_announcement'),
+    path('announcement/delete/<int:id>/', views.delete_announcement,
+         name='delete_announcement'),
+    path('announcement/all/', views.get_all_announcements,
+         name='get_all_announcements'),
 
 
 ]

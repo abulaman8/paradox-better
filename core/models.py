@@ -5,9 +5,20 @@ from django.contrib.auth.models import Group, Permission, User
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 import uuid
-
-from django.utils.text import wrap
 from forms.models import Form, Block, Element, Input
+
+
+class Announcement(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=1024)
+    body = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='announcement_creator')
+    update_author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='announcement_updater')
+    created_by = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Blacklist(models.Model):

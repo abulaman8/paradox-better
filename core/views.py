@@ -5,7 +5,7 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import CustomRole, Department, Role, ApprovalStatus, Blacklist
+from .models import CustomRole, Department, Role, ApprovalStatus, Blacklist, Announcement
 from core.serializers import DepartmentDetailSerializer, DepartmentSerializer, PermissionSerializer, RoleSerializer, UserSerializer, ApprovalStatusSerializer
 from utils.decorators import authed, has_perms, group_required
 
@@ -409,3 +409,74 @@ def set_dept_role_perms(request, id):
         return Response({'error': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
     role.permissions.set(perms_objects)
     return Response({'message': 'Permissions set'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@has_perms(['add_announcement'])
+def create_announcement(request):
+    data = request.data
+    title = data.get('title')
+    body = data.get('body')
+    created_by = data.get('created_by')
+    try:
+        announcement = Announcement.objects.create(
+            title=title,
+            body=body,
+            author=request.user,
+            update_author=request.user,
+            created_by=created_by
+        )
+        announcement.save()
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'message': 'Announcement created successfully'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PUT'])
+@has_perms(['change_announcement'])
+def update_announcement(request, id):
+    data = request.data
+    title = data.get('title')
+    body = data.get('body')
+    created_by = data.get('created_by')
+    try:
+        announcement = Announcement.objects.get(id=id)
+        announcement.title = title
+        announcement.body = body
+        announcement.created_by = created_by
+        announcement.update_author = request.user
+        announcement.save()
+    except Announcement.DoesNotExist:
+        return Response({'error': 'Announcement not found'}, status=status.HTTP_404_NOT_FOUND)
+    return Response({'message': 'Announcement updated successfully'}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@has_perms(['delete_announcement'])
+def delete_announcement(request, id):
+    try:
+        announcement = Announcement.objects.get(id=id)
+        announcement.delete()
+    except Announcement.DoesNotExist:
+        return Response({'error': 'Announcement not found'}, status=status.HTTP_404_NOT_FOUND)
+    return Response({'message': 'Announcement deleted'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_all_announcements(request):
+    announcements = Announcement.objects.prefetch_related(
+        'author',
+        'update_author'
+    ).all().order_by('-created_at')
+    return Response(
+        [{
+            'id': a.id,
+            'title': a.title,
+            'body': a.body,
+            'created_at': a.created_at.strftime("%d-%m-%Y"),
+            'updated_at': a.updated_at.strftime("%d-%m-%Y"),
+            'created_by': a.created_by,
+            'author': a.author.username,
+            'update_author': a.update_author.username
+        } for a in announcements], status=status.HTTP_200_OK
+    )

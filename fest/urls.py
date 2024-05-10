@@ -21,4 +21,6 @@ urlpatterns = [
     path('events/registered/<int:event_id>/delete/',
          views.delete_reg, name='delete_reg'),
     path('user/exists/', views.check_user, name='check_user'),
+    path('announcements/', views.get_all_announcements,
+         name='get_all_announcements'),
 ]

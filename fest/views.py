@@ -12,11 +12,27 @@ from fest.serializers import FestEventSerializer
 from forms.models import Block, Element
 from utils.templates import fest_reg_template, event_reg_conf_template
 from utils.decorators import authed
-from core.models import Student, Event, Department
+from core.models import Student, Event, Department, Announcement
 from forms.serializers import FormSerializer
 from forms.types import FormType, BlockType, ElementType, InputType, SelectType, RadioGroupType, CheckboxGroupType
 from .models import FestRegistrstion, AccomodationRegistration
 from typing import List
+
+
+@api_view(['GET'])
+def get_all_announcements(request):
+    announcements = Announcement.objects.prefetch_related(
+        'author').all().order_by('-created_at')
+    return Response(
+        [{
+            'id': a.id,
+            'title': a.title,
+            'body': a.body,
+            'created_at': a.created_at.strftime("%d-%m-%Y"),
+            'created_by': a.created_by,
+            'author': a.author.username
+        } for a in announcements], status=status.HTTP_200_OK
+    )
 
 
 @api_view(['GET'])
