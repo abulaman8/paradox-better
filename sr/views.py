@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.db.models import Q
-from core.models import Event, QrCode, Student
+from core.models import Event, Member, QrCode, Student
 from utils.decorators import authed, has_perms
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,6 +9,8 @@ from emp.models import RegData
 from fest.models import FestRegistrstion
 from .models import EventCheckin, FestCheckin, SrVolunteer
 from rest_framework.decorators import api_view
+import csv
+from io import StringIO
 
 
 @api_view(['GET'])
@@ -128,3 +130,79 @@ def fest_checkin(request, code):
         return Response({'message': 'Invalid QR code'}, status=status.HTTP_404_NOT_FOUND)
     except SrVolunteer.DoesNotExist:
         return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@has_perms(['add_srvolunteer'])
+def add_volunteer(request):
+    data = request.data
+    email = data.get('email')
+    event_ids = data.get('events')
+    central_checkin = data.get('central_checkin')
+    try:
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        events = Event.objects.filter(id__in=event_ids).all()
+        volunteer = SrVolunteer(
+            user=user, can_do_central_checkin=central_checkin)
+        volunteer.events.set(events)
+        volunteer.save()
+        return Response({'message': 'Volunteer added'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@has_perms(['change_srvolunteer'])
+def update_volunteer(request, id):
+    data = request.data
+    event_ids = data.get('events')
+    central_checkin = data.get('central_checkin')
+    try:
+        events = Event.objects.filter(id__in=event_ids).all()
+        volunteer = SrVolunteer.objects.get(id=id)
+        volunteer.can_do_central_checkin = central_checkin
+        volunteer.events.set(events)
+        volunteer.save()
+        return Response({'message': 'Volunteer updated'}, status=status.HTTP_200_OK)
+    except SrVolunteer.DoesNotExist:
+        return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@has_perms(['delete_srvolunteer'])
+def delete_volunteer(request, id):
+    try:
+        volunteer = SrVolunteer.objects.get(id=id)
+        volunteer.delete()
+        return Response({'message': 'Volunteer deleted'}, status=status.HTTP_200_OK)
+    except SrVolunteer.DoesNotExist:
+        return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+# @has_perms(['change_department'])
+def import_dept_members(request, id):
+    csv_file = request.FILES.get('csv_file').read().decode('utf-8')
+    if not csv_file:
+        return Response({'message': 'No CSV file found'}, status=status.HTTP_400_BAD_REQUEST)
+    # column names - Name, Roll No, Email, Mobile, Discord Username, Dept/Team Name, Role, Description, Status.
+    members = []
+    with StringIO(csv_file) as f:
+        csv_data = csv.reader(f)
+        for row in csv_data:
+            name = row[0]
+            roll_no = row[1]
+            email = row[2]
+            mobile = row[3]
+            discord_username = row[4]
+            dept_name = row[5]
+            role = row[6]
+            description = row[7]
+            member_status = row[8]
+            members.append(Member())
+
+    return Response({'message': 'Imported successfully'}, status=status.HTTP_200_OK)

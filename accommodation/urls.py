@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path('mess/all/', views.get_all_mess, name='get_all_mess'),
     path('mess/add/', views.add_mess, name='add_mess'),
+    path('mess/edit/<int:id>/', views.edit_mess, name='edit_mess'),
+    path('mess/delete/<int:id>/', views.delete_mess, name='delete_mess'),
     path('qr/<str:code>/', views.get_profile, name='get_profile'),
     path('student/<str:email>/', views.get_code_by_email, name='get_code_by_email'),
     path('student/id/<int:id>/',
@@ -27,9 +29,13 @@ urlpatterns = [
          name='submit_supply_return_otp'),
     path('supply/all/', views.get_all_supplies, name='get_all_supplies'),
     path('supply/add/', views.add_supply, name='add_supply'),
+    path('supply/edit/<int:id>/', views.edit_supply, name='edit_supply'),
+    path('supply/delete/<int:id>/', views.delete_supply, name='delete_supply'),
     path('volunteer/profile/', views.get_volunteer_info),
     path('hostel/all', views.get_all_hostels, name='get_all_hostels'),
     path('hostel/add/', views.add_hostel, name='add_hostel'),
+    path('hostel/edit/<int:id>/', views.edit_hostel, name='edit_hostel'),
+    path('hostel/delete/<int:id>/', views.delete_hostel, name='delete_hostel'),
     path('hostel/upcoming/<int:id>/',
          views.upcoming_students, name='upcoming_students'),
     path('hostel/stats/<int:id>/', views.get_hostel_stats, name='get_hostel_stats')

@@ -186,6 +186,22 @@ class CustomRole(models.Model):
         return self.name
 
 
+class Member(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    discord_id = models.CharField(max_length=128, null=True, blank=True)
+    status = models.CharField(max_length=128, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.user.username
+
+
 class Link(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)

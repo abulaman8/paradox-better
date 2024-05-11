@@ -25,6 +25,25 @@ def add_hostel(request):
     return Response({'message': 'Hostel created'}, status=status.HTTP_200_OK)
 
 
+@api_view(['PUT'])
+@has_accom_perms(['change_hostel'])
+def edit_hostel(request, id):
+    data = request.data
+    name = data.get('name')
+    try:
+        Hostel.objects.filter(id=id).update(name=name)
+        return Response({'message': 'Hostel edited'}, status=status.HTTP_200_OK)
+    except Hostel.DoesNotExist:
+        return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@has_accom_perms(['delete_hostel'])
+def delete_hostel(request, id):
+    Hostel.objects.filter(id=id).delete()
+    return Response({'message': 'Hostel deleted'}, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 @has_accom_perms(['add_supply'])
 def add_supply(request):
@@ -34,6 +53,25 @@ def add_supply(request):
         return Response({'message': 'Supply already exists'}, status=status.HTTP_400_BAD_REQUEST)
     Supply.objects.create(name=name)
     return Response({'message': 'Supply created'}, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+@has_accom_perms(['change_supply'])
+def edit_supply(request, id):
+    data = request.data
+    name = data.get('name')
+    try:
+        Supply.objects.filter(id=id).update(name=name)
+        return Response({'message': 'Supply edited'}, status=status.HTTP_200_OK)
+    except Supply.DoesNotExist:
+        return Response({'message': 'Supply not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@has_accom_perms(['delete_supply'])
+def delete_supply(request, id):
+    Supply.objects.filter(id=id).delete()
+    return Response({'message': 'Supply deleted'}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -49,11 +87,34 @@ def add_mess(request):
     return Response({'message': 'Mess created'}, status=status.HTTP_200_OK)
 
 
+@api_view(['PUT'])
+@has_accom_perms(['change_mess'])
+def edit_mess(request, id):
+    data = request.data
+    name = data.get('name')
+    floor = data.get('floor')
+    caterer = data.get('caterer')
+    try:
+        Mess.objects.filter(id=id).update(
+            name=name, floor=floor, caterer=caterer)
+        return Response({'message': 'Mess edited'}, status=status.HTTP_200_OK)
+    except Mess.DoesNotExist:
+        return Response({'message': 'Mess not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['DELETE'])
+@has_accom_perms(['delete_mess'])
+def delete_mess(request, id):
+    Mess.objects.filter(id=id).delete()
+    return Response({'message': 'Mess deleted'}, status=status.HTTP_200_OK)
+
+
 @api_view(['GET'])
 @has_accom_perms(['view_mess'])
 def get_all_mess(request):
     mess = Mess.objects.all()
     return Response([{
+        'id': mess.id,
         'name': mess.name,
         'floor': mess.floor,
         'caterer': mess.caterer
