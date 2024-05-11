@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from core.models import Department, Role, Event, SubDepartment
 from finance.models import Bill, Voucher, VoucherType
 from .templates import voucher_template, stact, sign, paradox_new_logo, empty
-# import pdfkit
+import pdfkit
 import uuid
 
 
@@ -102,14 +102,14 @@ def generate_voucher(bill_id):
     context = Context(data)
 
     voucher = template.render(context)
-    # pdf_file = pdfkit.from_string(voucher)
-    # voucher = Voucher.objects.create(
-    #     bill=bill,
-    #     voucher_type=voucher_type,
-    # )
-    # voucher.file.save(f'{uuid.uuid4()}.pdf',
-    #                   ContentFile(pdf_file), save=True)  # type: ignore
-    # return True
+    pdf_file = pdfkit.from_string(voucher)
+    voucher = Voucher.objects.create(
+        bill=bill,
+        voucher_type=voucher_type,
+    )
+    voucher.file.save(f'{uuid.uuid4()}.pdf',
+                      ContentFile(pdf_file), save=True)  # type: ignore
+    return True
 
 
 def get_fin_permissions(obj, user_perms):
