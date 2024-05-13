@@ -3,6 +3,11 @@ from . import views
 
 
 urlpatterns = [
+    path('accom/add/', views.add_accom_entry, name='add_accom_entry'),
+    path('accom/edit/', views.edit_accom_entry, name='edit_accom_entry'),
+    path('accom/delete/', views.delete_accom_entry,
+         name='delete_accom_entry'),
+    path('accom/bulk/add/', views.mass_upload_accom, name='mass_upload_accom'),
     path('mess/all/', views.get_all_mess, name='get_all_mess'),
     path('mess/add/', views.add_mess, name='add_mess'),
     path('mess/edit/<int:id>/', views.edit_mess, name='edit_mess'),

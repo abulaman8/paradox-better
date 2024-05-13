@@ -12,6 +12,8 @@ from .models import Accommadation, Hostel, Supply, OTP, AccomVolunteer, Mess
 from datetime import datetime, timedelta
 import random
 from .decorators import has_accom_perms
+from io import StringIO
+import csv
 
 
 @api_view(['POST'])
@@ -564,6 +566,56 @@ def delete_accom_entry(request):
         return Response({'message': 'Accommodation deleted'}, status=status.HTTP_200_OK)
     except Student.DoesNotExist:
         return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_accommadation'])
+def mass_upload_accom(request):
+    csv_file = request.FILES['file'].read().decode('utf-8')
+    # columns - email, hostel, room, mess, floor, caterer
+    hostel_dict = {}
+    mess_dict = {}
+    hostels = Hostel.objects.all()
+    for host in hostels:
+        hostel_dict[host.name] = host
+    messes = Mess.objects.all()
+    for mess in messes:
+        mess_dict[f"{mess.name}{mess.floor}{mess.caterer}"] = mess
+    accom_objects = []
+    with StringIO(csv_file) as fp:
+        reader = csv.DictReader(fp)
+        for row in reader:
+            try:
+                student = Student.objects.get(email=row['email'])
+                if not AccomodationRegistration.objects.filter(student=student).exists():
+                    return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
+                accom = Accommadation.objects.filter(student=student).first()
+                if accom:
+                    return Response({'message': f'Accommodation already exists for {row["email"]} '}, status=status.HTTP_404_NOT_FOUND)
+                mess = mess_dict.get(
+                    f"{row['mess']}{row['floor']}{row['caterer']}"
+                )
+                if not mess:
+                    return Response({'message': f'Mess {row["mess"]} - {row["floor"]} - {row["caterer"]} not found'}, status=status.HTTP_404_NOT_FOUND)
+                hostel = hostel_dict.get(row['hostel'])
+                if not hostel:
+                    return Response({'message': f'Hostel {row["hostel"]} not found'}, status=status.HTTP_404_NOT_FOUND)
+                accom = Accommadation(
+                    student=student,
+                    room=row['room'],
+                    mess=mess,
+                    hostel=hostel
+                )
+                accom_objects.append(accom)
+            except Student.DoesNotExist:
+                return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+            except Hostel.DoesNotExist:
+                return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+            except Mess.DoesNotExist:
+                return Response({'message': 'Mess not found'}, status=status.HTTP_404_NOT_FOUND)
+        Accommadation.objects.bulk_create(accom_objects)
+
+    return Response({'message': 'Accommodation added'}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

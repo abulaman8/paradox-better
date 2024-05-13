@@ -132,6 +132,17 @@ def fest_checkin(request, code):
         return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(['GET'])
+@authed()
+def get_event_participants(request, event_id):
+    try:
+        event = Event.objects.get(id=event_id)
+        reg = RegData.objects.prefetch_related(
+            'students').filter(event=event).all()
+    except Event.DoesNotExist:
+        return Response({'message': 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 @api_view(['POST'])
 @has_perms(['add_srvolunteer'])
 def add_volunteer(request):
