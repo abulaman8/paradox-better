@@ -582,16 +582,18 @@ def mass_upload_accom(request):
     for mess in messes:
         mess_dict[f"{mess.name}{mess.floor}{mess.caterer}"] = mess
     accom_objects = []
+    print(hostel_dict)
+    print(mess_dict)
     with StringIO(csv_file) as fp:
         reader = csv.DictReader(fp)
         for row in reader:
             try:
                 student = Student.objects.get(email=row['email'])
                 if not AccomodationRegistration.objects.filter(student=student).exists():
-                    return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
-                accom = Accommadation.objects.filter(student=student).first()
-                if accom:
-                    return Response({'message': f'Accommodation already exists for {row["email"]} '}, status=status.HTTP_404_NOT_FOUND)
+                    print(
+                        f"Accommodation for student {row['email']} not found")
+                    # continue
+                    return Response({'message': f'Accommodation for student {row["email"]} not found'}, status=status.HTTP_404_NOT_FOUND)
                 mess = mess_dict.get(
                     f"{row['mess']}{row['floor']}{row['caterer']}"
                 )
@@ -600,13 +602,20 @@ def mass_upload_accom(request):
                 hostel = hostel_dict.get(row['hostel'])
                 if not hostel:
                     return Response({'message': f'Hostel {row["hostel"]} not found'}, status=status.HTTP_404_NOT_FOUND)
-                accom = Accommadation(
-                    student=student,
-                    room=row['room'],
-                    mess=mess,
-                    hostel=hostel
-                )
-                accom_objects.append(accom)
+                accom = Accommadation.objects.filter(student=student).first()
+                if accom:
+                    accom.room = row['room']
+                    accom.mess = mess
+                    accom.hostel = hostel
+                    accom.save()
+                else:
+                    accom = Accommadation(
+                        student=student,
+                        room=row['room'],
+                        mess=mess,
+                        hostel=hostel
+                    )
+                    accom_objects.append(accom)
             except Student.DoesNotExist:
                 return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
             except Hostel.DoesNotExist:
