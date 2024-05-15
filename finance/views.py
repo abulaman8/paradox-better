@@ -715,8 +715,8 @@ def get_all_vouchers(request):
         'id': voucher.id,
         'file': voucher.file.url,
         'voucher_type': voucher.voucher_type.name,
-        'date_created': voucher.date_created.strftime("%d-%m-%Y %H:%M:%S"),
-        'date_updated': voucher.date_updated.strftime("%d-%m-%Y %H:%M:%S"),
+        'date_created': voucher.date_created.strftime("%Y-%m-%d"),
+        'date_updated': voucher.date_updated.strftime("%Y-%m-%d"),
 
     } for voucher in vouchers]
     return Response(data, status=status.HTTP_200_OK)
