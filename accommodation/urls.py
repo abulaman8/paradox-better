@@ -3,6 +3,7 @@ from . import views
 
 
 urlpatterns = [
+    path('accom/all/', views.get_accom_entries, name='get_accom_entries'),
     path('accom/add/', views.add_accom_entry, name='add_accom_entry'),
     path('accom/edit/', views.edit_accom_entry, name='edit_accom_entry'),
     path('accom/delete/', views.delete_accom_entry,

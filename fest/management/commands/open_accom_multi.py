@@ -2,8 +2,6 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template import Template, Context
-from core.models import Student
-from fest.models import AccomodationRegistration
 import multiprocessing
 
 
@@ -36,7 +34,7 @@ class Command(BaseCommand):
     help = 'create accommodation registration for students in emails and set payment_status to True'
 
     def handle(self, *args, **options):
-        with open('left_out_emails', 'r') as f:
+        with open('p3fail', 'r') as f:
             emails = f.read().splitlines()
         # emails = [
         #     '21f3002911@ds.study.iitm.ac.in',

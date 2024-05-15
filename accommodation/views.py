@@ -627,6 +627,31 @@ def mass_upload_accom(request):
     return Response({'message': 'Accommodation added'}, status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+@has_accom_perms(['view_accommadation'])
+def get_accom_entries(request):
+    accoms = Accommadation.objects.prefetch_related(
+        'mess',
+        'hostel',
+        'student',
+        'supplies_given',
+        'supplies_returned'
+    ).all()
+    data = []
+    for accom in accoms:
+        data.append({
+            'email': accom.student.email,
+            'hostel': accom.hostel.name,
+            'room': accom.room,
+            'mess': f"{accom.mess.name}-{accom.mess.floor}-{accom.mess.caterer}",
+            'check in': accom.check_in.strftime('%d-%m-%Y %H:%M:%S') if accom.check_in else None,
+            'check out': accom.check_out.strftime('%d-%m-%Y %H:%M:%S') if accom.check_out else None,
+            'supplies provided': ", ".join([supply.name for supply in accom.supplies_given.all()]),
+            'supplies returned': ", ".join([supply.name for supply in accom.supplies_returned.all()])
+        })
+    return Response(data, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 @has_accom_perms(['add_accomvolunteer'])
 def add_accom_volunteer(request):
