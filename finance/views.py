@@ -423,9 +423,9 @@ def upload_bill(request):
                     branch_name=vendor_bank_details["branch_name"],
                     account_holder_name=vendor_bank_details["account_holder_name"]
                 )
-            if Vendor.objects.filter(gst_number=vendor["gst_number"]).exists():
+            if Vendor.objects.filter(gst_number=vendor["gst_number"], name=vendor["name"]).exists():
                 vendor_object = Vendor.objects.get(
-                    gst_number=vendor["gst_number"])
+                    gst_number=vendor["gst_number"], name=vendor["name"])
             else:
                 vendor_object = Vendor.objects.create(
                     name=vendor["name"], gst_number=vendor["gst_number"], bank_details=bank_details, address=vendor["address"])
@@ -480,9 +480,9 @@ def upload_bill(request):
             }, status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            if Vendor.objects.filter(gst_number=vendor["gst_number"]).exists():
-                vendor_object = Vendor.objects.get(
-                    gst_number=vendor["gst_number"])
+            if Vendor.objects.filter(gst_number=vendor["gst_number"], name=vendor["name"]).exists():
+                vendor_object = Vendor.objects.filter(
+                    gst_number=vendor["gst_number"], name=vendor["name"]).first()
             else:
                 vendor_object = Vendor.objects.create(
                     name=vendor["name"], gst_number=vendor["gst_number"], address=vendor["address"])
