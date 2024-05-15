@@ -73,6 +73,15 @@ def generate_voucher(bill_id):
         'vendor__bank_details',
     ).get(id=bill_id)
     bill_type = bill.bill_type
+    account = bill.account
+    dc = Department.objects.filter(account=account).first()
+    ec = Event.objects.filter(account=account).first()
+    if dc:
+        dept = dc
+    elif ec:
+        dept = ec.department
+    else:
+        dept = None
     voucher_type = VoucherType.objects.get(name=bill_type)
     img_data = "data:image/png;base64,"
 
@@ -82,7 +91,7 @@ def generate_voucher(bill_id):
         'bill_number': bill.bill_number,
         'date': bill.bill_date.strftime('%d-%m-%Y'),
         'vendor': bill.vendor.name if bill.vendor else '',
-        'dept': 'IT',
+        'dept': dept.name if dept else '',
         'vendor_address': bill.vendor.address if bill.vendor else '',
         'gst_number': bill.vendor.gst_number if bill.vendor else '',
         'type': voucher_type.name,

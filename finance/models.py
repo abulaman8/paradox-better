@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from core.models import Account, ApprovalStatus
+from core.models import Account, ApprovalStatus, Department
 from frb.models import Requirement
 
 # Create your models here.
@@ -75,6 +75,17 @@ class Bill(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# class Split(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     department = models.ForeignKey(
+#         Department, on_delete=models.SET_NULL, null=True)
+#     bill = models.ForeignKey(Bill, on_delete=models.PROTECT)
+#     amount = models.FloatField()
+#
+#     def __str__(self):
+#         return f"{self.bill} - {self.department}"
 
 
 class Voucher(models.Model):

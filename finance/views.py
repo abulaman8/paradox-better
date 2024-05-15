@@ -11,7 +11,7 @@ from utils.decorators import authed, has_bill_perms, has_budget_perms, has_perms
 from utils.fns import generate_voucher
 from datetime import datetime
 import json
-from .models import Bill, DebitTransaction, CreditTransaction, Account, BankDetails, Vendor
+from .models import Bill, DebitTransaction, CreditTransaction, Account, BankDetails, Vendor, Voucher
 from .serializers import BillSerializer, CreditTransactionSerializer, DebitTransactionSerializer
 from frb.serializers import RequirementSerializer
 
@@ -705,3 +705,9 @@ def get_all_approved_requirements(request):
 def gen_dummy_vouch(request):
     generate_voucher(10)
     return Response({'message': 'dummy voucher generated'})
+
+
+@api_view(['GET'])
+@has_perms(['view_voucher'])
+def get_all_vouchers(request):
+    vouchers = Voucher.objects.all()
