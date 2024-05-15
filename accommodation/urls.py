@@ -44,5 +44,6 @@ urlpatterns = [
     path('hostel/delete/<int:id>/', views.delete_hostel, name='delete_hostel'),
     path('hostel/upcoming/<int:id>/',
          views.upcoming_students, name='upcoming_students'),
-    path('hostel/stats/<int:id>/', views.get_hostel_stats, name='get_hostel_stats')
+    path('hostel/stats/<int:id>/', views.get_hostel_stats, name='get_hostel_stats'),
+    path('reset_shantanu/', views.reset_shantanu, name='reset_shantanu')
 ]

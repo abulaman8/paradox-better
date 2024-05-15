@@ -710,3 +710,16 @@ def edit_accom_volunteer(request):
         return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
     except Hostel.DoesNotExist:
         return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def reset_shantanu(request):
+    st = Student.objects.get(email="22f3000495@ds.study.iitm.ac.in")
+    accom = Accommadation.objects.get(student=st)
+    accom.check_in = None
+    accom.check_out = None
+    accom.supplies_returned.clear()
+    accom.supplies_given.clear()
+    accom.supplies_checked_out = False
+    accom.save()
+    return Response({'message': 'Done'}, status=status.HTTP_200_OK)
