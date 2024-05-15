@@ -710,13 +710,14 @@ def gen_dummy_vouch(request):
 @api_view(['GET'])
 @has_perms(['view_voucher'])
 def get_all_vouchers(request):
-    vouchers = Voucher.objects.prefetch_related('voucher_type').all()
+    vouchers = Voucher.objects.prefetch_related('voucher_type', 'bill').all()
     data = [{
         'id': voucher.id,
         'file': voucher.file.url,
         'voucher_type': {"name": voucher.voucher_type.name, "id": voucher.voucher_type.id},
         'date_created': voucher.date_created.strftime("%Y-%m-%d"),
         'date_updated': voucher.date_updated.strftime("%Y-%m-%d"),
+        'bill': voucher.bill.id
 
     } for voucher in vouchers]
     return Response(data, status=status.HTTP_200_OK)
