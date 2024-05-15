@@ -120,7 +120,7 @@ def has_perms(perms: list):
                 found = False
             else:
                 found = True
-            # print(f"found: {found}")
+            print(f"found: {found}")
             if secretary_group not in user.groups.all() and not found:
                 if event:
                     for perm in permissions:
