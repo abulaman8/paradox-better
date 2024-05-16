@@ -27,6 +27,7 @@ class OTP(models.Model):
 class Hostel(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
+    location = models.URLField(max_length=2048, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -37,6 +38,7 @@ class Mess(models.Model):
     name = models.CharField(max_length=100)
     floor = models.PositiveIntegerField(null=True, blank=True)
     caterer = models.CharField(max_length=100, null=True, blank=True)
+    location = models.URLField(max_length=2048, null=True, blank=True)
 
     def __str__(self):
         return self.name + " - " + self.caterer

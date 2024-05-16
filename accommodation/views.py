@@ -21,9 +21,12 @@ import csv
 def add_hostel(request):
     data = request.data
     name = data.get('name')
+    location = data.get('location')
+    if not name or len(name) == 0:
+        return Response({'message': 'Hostel name cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
     if Hostel.objects.filter(name=name).exists():
         return Response({'message': 'Hostel already exists'}, status=status.HTTP_400_BAD_REQUEST)
-    Hostel.objects.create(name=name)
+    Hostel.objects.create(name=name, location=location)
     return Response({'message': 'Hostel created'}, status=status.HTTP_200_OK)
 
 
@@ -32,8 +35,11 @@ def add_hostel(request):
 def edit_hostel(request, id):
     data = request.data
     name = data.get('name')
+    location = data.get('location')
+    if not name or len(name) == 0:
+        return Response({'message': 'Hostel name cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
     try:
-        Hostel.objects.filter(id=id).update(name=name)
+        Hostel.objects.filter(id=id).update(name=name, location=location)
         return Response({'message': 'Hostel edited'}, status=status.HTTP_200_OK)
     except Hostel.DoesNotExist:
         return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -85,9 +91,11 @@ def add_mess(request):
     name = data.get('name')
     floor = data.get('floor')
     caterer = data.get('caterer')
+    location = data.get('location')
     if Mess.objects.filter(name=name, caterer=caterer, floor=floor).exists():
         return Response({'message': 'Mess already exists'}, status=status.HTTP_400_BAD_REQUEST)
-    Mess.objects.create(name=name, floor=floor, caterer=caterer)
+    Mess.objects.create(name=name, floor=floor,
+                        caterer=caterer, location=location)
     return Response({'message': 'Mess created'}, status=status.HTTP_200_OK)
 
 
@@ -98,9 +106,10 @@ def edit_mess(request, id):
     name = data.get('name')
     floor = data.get('floor')
     caterer = data.get('caterer')
+    location = data.get('location')
     try:
         Mess.objects.filter(id=id).update(
-            name=name, floor=floor, caterer=caterer)
+            name=name, floor=floor, caterer=caterer, location=location)
         return Response({'message': 'Mess edited'}, status=status.HTTP_200_OK)
     except Mess.DoesNotExist:
         return Response({'message': 'Mess not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -121,7 +130,8 @@ def get_all_mess(request):
         'id': mess.id,
         'name': mess.name,
         'floor': mess.floor,
-        'caterer': mess.caterer
+        'caterer': mess.caterer,
+        'location': mess.location
     } for mess in mess], status=status.HTTP_200_OK)
 
 
@@ -142,7 +152,8 @@ def get_all_hostels(request):
     hostels = Hostel.objects.all()
     return Response([{
         'name': hostel.name,
-        'id': hostel.id
+        'id': hostel.id,
+        'location': hostel.location
     } for hostel in hostels])
 
 
