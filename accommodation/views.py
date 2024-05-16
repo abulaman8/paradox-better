@@ -58,6 +58,8 @@ def add_supply(request):
     data = request.data
     name = data.get('name')
     description = data.get('description')
+    if not name or len(name) == 0:
+        return Response({'message': 'Supply name cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
     if Supply.objects.filter(name=name).exists():
         return Response({'message': 'Supply already exists'}, status=status.HTTP_400_BAD_REQUEST)
     Supply.objects.create(name=name, description=description)
@@ -70,6 +72,8 @@ def edit_supply(request, id):
     data = request.data
     name = data.get('name')
     description = data.get('description')
+    if not name or len(name) == 0:
+        return Response({'message': 'Supply name cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         Supply.objects.filter(id=id).update(name=name, description=description)
         return Response({'message': 'Supply edited'}, status=status.HTTP_200_OK)
@@ -92,6 +96,8 @@ def add_mess(request):
     floor = data.get('floor')
     caterer = data.get('caterer')
     location = data.get('location')
+    if not name or len(name) == 0 or not floor or not caterer or len(caterer) == 0:
+        return Response({'message': 'Mess name, caterer and floor cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
     if Mess.objects.filter(name=name, caterer=caterer, floor=floor).exists():
         return Response({'message': 'Mess already exists'}, status=status.HTTP_400_BAD_REQUEST)
     Mess.objects.create(name=name, floor=floor,
@@ -107,6 +113,8 @@ def edit_mess(request, id):
     floor = data.get('floor')
     caterer = data.get('caterer')
     location = data.get('location')
+    if not name or len(name) == 0 or not floor or not caterer or len(caterer) == 0:
+        return Response({'message': 'Mess name, caterer and floor cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         Mess.objects.filter(id=id).update(
             name=name, floor=floor, caterer=caterer, location=location)
