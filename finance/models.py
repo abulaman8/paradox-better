@@ -77,15 +77,15 @@ class Bill(models.Model):
         return self.title
 
 
-# class Split(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     department = models.ForeignKey(
-#         Department, on_delete=models.SET_NULL, null=True)
-#     bill = models.ForeignKey(Bill, on_delete=models.PROTECT)
-#     amount = models.FloatField()
-#
-#     def __str__(self):
-#         return f"{self.bill} - {self.department}"
+class Split(models.Model):
+    id = models.AutoField(primary_key=True)
+    department = models.ForeignKey(
+        Department, on_delete=models.SET_NULL, null=True)
+    bill = models.ForeignKey(Bill, on_delete=models.PROTECT)
+    amount = models.FloatField()
+
+    def __str__(self):
+        return f"{self.bill} - {self.department} - {self.amount}"
 
 
 class Voucher(models.Model):
