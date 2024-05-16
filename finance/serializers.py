@@ -72,6 +72,28 @@ class BillSerializer(ModelSerializer):
         }
 
 
+class BillListSerializer(ModelSerializer):
+    approval_status = ApprovalStatusSerializer(read_only=True)
+    department = SerializerMethodField()
+    bill_date = SerializerMethodField()
+
+    class Meta:
+        model = Bill
+        fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'amount', 'total_amount', 'description',
+                  'approval_status', 'bill_type', 'vendor', 'date_created', 'department']
+        read_only_fields = ['id', 'title', 'bill_number', 'bill_date', 'file', 'amount', 'total_amount', 'description',
+                            'approval_status', 'bill_type', 'vendor', 'date_created', 'department']
+
+    def get_bill_date(self, obj):
+        return obj.bill_date.strftime('%Y-%m-%d')
+
+    def get_department(self, obj):
+        try:
+            return obj.account.department.name
+        except:
+            return None
+
+
 class VoucherSerializer(ModelSerializer):
     voucher_type = VoucherTypeSerializer()
     bill = BillSerializer(read_only=True)

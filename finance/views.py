@@ -12,7 +12,7 @@ from utils.fns import generate_voucher
 from datetime import datetime
 import json
 from .models import Bill, DebitTransaction, CreditTransaction, Account, BankDetails, Vendor, Voucher
-from .serializers import BillSerializer, CreditTransactionSerializer, DebitTransactionSerializer
+from .serializers import BillListSerializer, BillSerializer, CreditTransactionSerializer, DebitTransactionSerializer
 from frb.serializers import RequirementSerializer
 
 
@@ -297,7 +297,7 @@ def get_all_bills(request):
             event = Event.objects.get(id=event_id)
             account = event.account
             bills = Bill.objects.filter(account=account).all()
-            serializer = BillSerializer(bills, many=True)
+            serializer = BillListSerializer(bills, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Event.DoesNotExist:
             return Response({'message': 'Event does not exist'}, status=status.HTTP_404_NOT_FOUND)
@@ -311,12 +311,12 @@ def get_all_bills(request):
             event_bills = Bill.objects.filter(account__in=event_accounts).all()
             bills = Bill.objects.filter(
                 account=account).all().union(event_bills)
-            serializer = BillSerializer(bills, many=True)
+            serializer = BillListSerializer(bills, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Department.DoesNotExist:
             return Response({'message': 'Department does not exist'})
     bill = Bill.objects.all()
-    serializer = BillSerializer(bill, many=True)
+    serializer = BillListSerializer(bill, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
