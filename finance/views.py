@@ -714,6 +714,7 @@ def get_all_vouchers(request):
     data = [{
         'id': voucher.id,
         'file': voucher.file.url,
+        'title': voucher.bill.title,
         'voucher_type': {"name": voucher.voucher_type.name, "id": voucher.voucher_type.id},
         'date_created': voucher.date_created.strftime("%Y-%m-%d"),
         'date_updated': voucher.date_updated.strftime("%Y-%m-%d"),
