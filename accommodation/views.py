@@ -51,9 +51,10 @@ def delete_hostel(request, id):
 def add_supply(request):
     data = request.data
     name = data.get('name')
+    description = data.get('description')
     if Supply.objects.filter(name=name).exists():
         return Response({'message': 'Supply already exists'}, status=status.HTTP_400_BAD_REQUEST)
-    Supply.objects.create(name=name)
+    Supply.objects.create(name=name, description=description)
     return Response({'message': 'Supply created'}, status=status.HTTP_200_OK)
 
 
@@ -62,8 +63,9 @@ def add_supply(request):
 def edit_supply(request, id):
     data = request.data
     name = data.get('name')
+    description = data.get('description')
     try:
-        Supply.objects.filter(id=id).update(name=name)
+        Supply.objects.filter(id=id).update(name=name, description=description)
         return Response({'message': 'Supply edited'}, status=status.HTTP_200_OK)
     except Supply.DoesNotExist:
         return Response({'message': 'Supply not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -129,7 +131,8 @@ def get_all_supplies(request):
     supplies = Supply.objects.all()
     return Response([{
         'Item Name': supply.name,
-        'Item ID': supply.id
+        'Item ID': supply.id,
+        'Description': supply.description
     } for supply in supplies])
 
 
