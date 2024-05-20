@@ -16,6 +16,7 @@ urlpatterns = [
          views.final_level_rejection, name='final_level_rejection'),
     path('bill/approvedRequirements/', views.get_all_approved_requirements,
          name='get_all_approved_requirements'),
+    path('bill/split/', views.create_split, name='create_split'),
     path('budget/balance/', views.get_balance, name='get_balance'),
     path('budget/allocate/department/<int:id>/',
          views.assign_dept_budget, name='assign_dept_budget'),

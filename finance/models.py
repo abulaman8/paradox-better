@@ -57,7 +57,8 @@ class Bill(models.Model):
     file = models.FileField(upload_to="bills/", null=True, blank=True)
     account = models.ForeignKey(
         Account, on_delete=models.PROTECT, related_name="bills")
-    requirements = models.ManyToManyField(Requirement, related_name="bills")
+    requirements = models.ManyToManyField(
+        Requirement, related_name="bills", blank=True)
     amount = models.FloatField()
     total_amount = models.FloatField(null=True, blank=True)
     description = models.TextField()
@@ -83,6 +84,8 @@ class Split(models.Model):
         Department, on_delete=models.SET_NULL, null=True)
     bill = models.ForeignKey(Bill, on_delete=models.PROTECT)
     amount = models.FloatField()
+    requirements = models.ManyToManyField(
+        Requirement, related_name="splits", blank=True)
 
     def __str__(self):
         return f"{self.bill} - {self.department} - {self.amount}"

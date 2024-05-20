@@ -144,6 +144,8 @@ def get_fin_permissions(obj, user_perms):
         codename='deassign_event_budget')
     view_account = Permission.objects.filter(
         codename='view_account')
+    create_split = Permission.objects.filter(
+        codename='add_split')
     r = {}
     r['user_bills'] = {
         'view': True,
@@ -171,12 +173,15 @@ def get_fin_permissions(obj, user_perms):
     r['department_budget']['allocate'] = False
     r['department_budget']['deallocate'] = False
     r['department_account']['view'] = False
+    r['split'] = False
     groups = user_perms['groups']
     departments = user_perms['departments']
     sub_departments = user_perms['sub_departments']
     events = user_perms['events']
     for group in groups:
         # print(groups[group])
+        if create_split.first() in groups[group]:
+            r['split'] = True
         if view_vouchers.first() in groups[group]:
             r['voucher']['view'] = True
         if view_bills.first() in groups[group]:

@@ -11,7 +11,7 @@ from utils.decorators import authed, has_bill_perms, has_budget_perms, has_perms
 from utils.fns import generate_voucher
 from datetime import datetime
 import json
-from .models import Bill, DebitTransaction, CreditTransaction, Account, BankDetails, Vendor, Voucher
+from .models import Bill, DebitTransaction, CreditTransaction, Account, BankDetails, Vendor, Voucher, Split
 from .serializers import BillListSerializer, BillSerializer, CreditTransactionSerializer, DebitTransactionSerializer
 from frb.serializers import RequirementSerializer
 
@@ -562,19 +562,35 @@ def final_level_approval(request, bill_id):
             bill.approval_status = ApprovalStatus.objects.get(
                 name='final_level_approved')
             bill.save()
-            account = bill.account
-            dept = Department.objects.filter(account=account).first()
-            event = Event.objects.filter(department=dept).first()
-            if event:
-                dept = event.department if event else None
-            dept_account = dept.account if dept else None
-            cred = CreditTransaction.objects.create(
-                account=dept_account,
-                amount=bill.amount,
-                description=bill.description,
-                txn_type='bill_payment',
-                bill=bill
-            )
+            splits = Split.objects.prefetch_related(
+                "department",
+                "department__account"
+            ).filter(bill=bill)
+            if splits.exists():
+                all_splits = splits.all()
+                for split in all_splits:
+                    account = split.department.account
+                    CreditTransaction.objects.create(
+                        account=account,
+                        amount=split.amount,
+                        description=bill.description,
+                        txn_type='bill_split_payment',
+                        bill=bill
+                    )
+            else:
+                account = bill.account
+                dept = Department.objects.filter(account=account).first()
+                event = Event.objects.filter(department=dept).first()
+                if event:
+                    dept = event.department if event else None
+                dept_account = dept.account if dept else None
+                cred = CreditTransaction.objects.create(
+                    account=dept_account,
+                    amount=bill.amount,
+                    description=bill.description,
+                    txn_type='bill_payment',
+                    bill=bill
+                )
         try:
             from_email = f"Finance & Requirements <{settings.EMAIL_HOST_USER}>"
             to = bill.author.email
@@ -722,3 +738,35 @@ def get_all_vouchers(request):
 
     } for voucher in vouchers]
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@has_perms(['add_split'])
+def create_split(request):
+    data = request.data
+    bill_id = data.get('bill_id')
+    amount = data.get('amount')
+    requirement_ids = data.get('requirement_ids')
+    dept_id = data.get('dept_id')
+    reqs = []
+    try:
+        bill = Bill.objects.get(id=bill_id)
+        dept = Department.objects.get(id=dept_id)
+        for requirement_id in requirement_ids:
+            req = Requirement.objects.get(id=requirement_id)
+            if req.department != dept:
+                return Response({'message': 'Department does not match'}, status=status.HTTP_400_BAD_REQUEST)
+            reqs.append(req)
+        split = Split.objects.create(
+            bill=bill,
+            amount=amount,
+            department=dept
+        )
+        split.requirements.set(reqs)
+        return Response({'message': 'Split created successfully'}, status=status.HTTP_200_OK)
+    except Bill.DoesNotExist:
+        return Response({'message': 'Bill does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    except Department.DoesNotExist:
+        return Response({'message': 'Department does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    except Requirement.DoesNotExist:
+        return Response({'message': 'Requirement does not exist'}, status=status.HTTP_404_NOT_FOUND)
