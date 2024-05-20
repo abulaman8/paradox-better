@@ -480,3 +480,14 @@ def get_all_announcements(request):
             'update_author': a.update_author.username
         } for a in announcements], status=status.HTTP_200_OK
     )
+
+
+@api_view(['GET'])
+@has_perms(['view_department'])
+def get_all_depts_short(request):
+    depts = Department.objects.all()
+    data = [{
+        'id': d.id,
+        'name': d.name
+    } for d in depts]
+    return Response(data, status=status.HTTP_200_OK)
