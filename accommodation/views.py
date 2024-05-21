@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
+from django.conf import settings
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
@@ -14,6 +15,7 @@ import random
 from .decorators import has_accom_perms
 from io import StringIO
 import csv
+import string
 
 
 @api_view(['POST'])
@@ -549,7 +551,7 @@ def add_accom_entry(request):
 def edit_accom_entry(request):
     data = request.data
     email = data.get('email')
-    hosel_id = data.get('hostel')
+    hostel_id = data.get('hostel')
     room = data.get('room')
     mess_id = data.get('mess')
     try:
@@ -560,7 +562,7 @@ def edit_accom_entry(request):
         if not accom:
             return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
         mess = Mess.objects.get(id=mess_id)
-        hostel = Hostel.objects.get(id=hosel_id)
+        hostel = Hostel.objects.get(id=hostel_id)
 
         accom.room = room
         accom.mess = mess
@@ -682,15 +684,36 @@ def add_accom_volunteer(request):
     hostels = data.get('hostels')
     try:
         hostel_objs = [Hostel.objects.get(id=id) for id in hostels]
-        student = Student.objects.get(email=email)
-        exists = AccomVolunteer.objects.filter(student=student).exists()
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        exists = AccomVolunteer.objects.filter(user=user).exists()
         if exists:
             return Response({'message': 'Accommodation volunteer already exists for this student'}, status=status.HTTP_400_BAD_REQUEST)
 
         accom = AccomVolunteer.objects.create(
-            student=student
+            user=user
         )
         accom.hostels.set(hostel_objs)
+        accom.save()
+        password = "".join(random.choices(
+            string.ascii_uppercase + string.digits, k=8))
+        user.set_password(password)
+        user.save()
+        subject = 'Accomodation Volunteer Credentials'
+        from_email = f'Accommodation - Paradox\'24 <{settings.EMAIL_HOST_USER}>'
+        message = 'Hi, your username is {} and password is {}'.format(
+            user.username, password)
+        mail = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=from_email,
+            to=[email],
+            cc=['accommodation@iitmparadox.org'],
+        )
+        mail.send(fail_silently=True)
+        return Response({'message': 'Accommodation volunteer added'}, status=status.HTTP_200_OK)
     except Student.DoesNotExist:
         return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
     except Hostel.DoesNotExist:
@@ -699,32 +722,22 @@ def add_accom_volunteer(request):
 
 @api_view(['DELETE'])
 @has_accom_perms(['delete_accomvolunteer'])
-def delete_accom_volunteer(request):
+def delete_accom_volunteer(request, id):
     data = request.data
-    email = data.get('email')
-    try:
-        student = Student.objects.get(email=email)
-        if not AccomVolunteer.objects.filter(student=student).exists():
-            return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
-        AccomVolunteer.objects.filter(student=student).delete()
-        return Response({'message': 'Accommodation volunteer deleted'}, status=status.HTTP_200_OK)
-    except Student.DoesNotExist:
-        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+    AccomVolunteer.objects.filter(id=id).delete()
+    return Response({'message': 'Accommodation volunteer deleted'}, status=status.HTTP_200_OK)
 
 
 @api_view(['PUT'])
 @has_accom_perms(['change_accomvolunteer'])
-def edit_accom_volunteer(request):
+def edit_accom_volunteer(request, id):
     data = request.data
-    email = data.get('email')
-    hostels = data.get('hostels')
+    hostel_ids = data.get('hostels')
+    hostels = []
     try:
-        student = Student.objects.get(email=email)
-        if not AccomVolunteer.objects.filter(student=student).exists():
-            return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
-        accom = AccomVolunteer.objects.filter(student=student).first()
-        if not accom:
-            return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+        accom = AccomVolunteer.objects.get(id=id)
+        for hid in hostel_ids:
+            hostels.append(Hostel.objects.get(id=hid))
         accom.hostels.set(hostels)
         accom.save()
         return Response({'message': 'Accommodation volunteer edited'}, status=status.HTTP_200_OK)
@@ -732,6 +745,83 @@ def edit_accom_volunteer(request):
         return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
     except Hostel.DoesNotExist:
         return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+    except AccomVolunteer.DoesNotExist:
+        return Response({'message': 'Accommodation volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@has_accom_perms(['add_accomvolunteer'])
+def add_accom_volunteer_bulk(request):
+    files = request.FILES
+    if not files:
+        return Response({'message': 'No files found'}, status=status.HTTP_400_BAD_REQUEST)
+    file = files['file']
+    if not file.name.endswith('.csv'):
+        return Response({'message': 'Invalid file format'}, status=status.HTTP_400_BAD_REQUEST)
+    csv_file = file.read().decode('utf-8')
+    # columns - email, hostel
+    hostel_dict = {}
+    hostels = Hostel.objects.all()
+    for host in hostels:
+        hostel_dict[host.name] = host
+    new_volunteers = []
+    user_password_pairs = []
+
+    with StringIO(csv_file) as fp:
+        reader = csv.DictReader(fp)
+        for row in reader:
+            try:
+                user = User.objects.filter(email=row['email']).first()
+                if not user:
+                    return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                accom, created = AccomVolunteer.objects.get_or_create(
+                    user=user)
+                if created:
+                    new_volunteers.append(user)
+                hostel = hostel_dict.get(row['hostel'])
+                if not hostel:
+                    return Response({'message': 'Hostel not found'}, status=status.HTTP_404_NOT_FOUND)
+                accom.hostels.add(hostel)
+                accom.save()
+
+            except User.DoesNotExist:
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    # set random 8 char password for new volunteers
+    for user in new_volunteers:
+        password = ''.join(random.choice(
+            string.ascii_uppercase + string.digits) for _ in range(8))
+        user.set_password(password)
+        user.save()
+        user_password_pairs.append((user.email, user.username, password))
+    # email password to new volunteers
+    subject = 'Accommodation Volunteer Credentials'
+    from_email = f'Accommodation - Paradox\'24 <{settings.EMAIL_HOST_USER}>'
+    for email, username, password in user_password_pairs:
+        message = 'Hi, your username is {} and password is {}'.format(
+            username, password)
+        mail = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=from_email,
+            to=[email],
+            cc=['accommodation@iitmparadox.org'],
+        )
+        mail.send(fail_silently=True)
+    return Response({'message': 'Volunteers added'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@has_accom_perms(['view_accomvolunteer'])
+def get_all_volunteers(request):
+    vols = AccomVolunteer.objects.prefetch_related('user', 'hostels').all()
+    data = []
+    for vol in vols:
+        data.append({
+            "name": f"{vol.user.last_name}" if vol.user.first_name[0] == '2' else f"{vol.user.first_name} {vol.user.last_name}",
+            "email": vol.user.email,
+            "hostels": ", ".join([hostel.name for hostel in vol.hostels.all()])
+        })
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
