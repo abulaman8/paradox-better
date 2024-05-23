@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = 'create accomodation registration for students in emails and set payment_status to True'
 
     def handle(self, *args, **options):
-        with open('left_out_emails', 'r') as f:
+        with open('temp', 'r') as f:
             emails = f.read().splitlines()
         i = 0
         for email in emails:

@@ -84,10 +84,12 @@ def generate_voucher(bill_id):
         dept = None
     voucher_type = VoucherType.objects.get(name=bill_type)
     img_data = "data:image/png;base64,"
+    voucher_count = Voucher.objects.count()
+    voucher_number = voucher_count + 1
 
     template = Template(voucher_template)
     data = {
-        'voucher_number': f'VN-{bill_id}',
+        'voucher_number': f"PA - {voucher_number : 04d}",
         'bill_number': bill.bill_number,
         'date': bill.bill_date.strftime('%d-%m-%Y'),
         'vendor': bill.vendor.name if bill.vendor else '',

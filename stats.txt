@@ -1,67 +1,67 @@
 all reg fetched
-Total Registrations: 15269
-Tech Registrations: 6702
-Cult Registrations: 2375
-Sport Registrations: 6192
+Total Registrations: 15670
+Tech Registrations: 6973
+Cult Registrations: 2409
+Sport Registrations: 6288
 Paradox Premier League 24 Cricket: 612
-Becoming Billionaire: Monetizing your ideas: 773
-DSA Triathlon: 449
+Becoming Billionaire: Monetizing your ideas: 793
+DSA Triathlon: 461
 Paradox Unwind: The ShowDown: 62
 Fiction Flicks: 164
-Prerna: 254
+Prerna: 354
 Abulaman Test: 0
 What’s In A Meme?: 272
-Python Coding Challenge 3.0: 611
+Python Coding Challenge 3.0: 617
 CyberHack: 0
-Volley Vortex: 256
-Tradequest: 431
+Volley Vortex: 262
+Tradequest: 444
 Prakriti Pravah IITM Varnana: 61
 Nukkad Natak: 103
 Pro Table Tennis Championship: 220
-Kampus Run: 864
+Kampus Run: 885
 Dramathon: 84
-Lift Off: 544
-Paradox Champions League: 352
-Ranneeti 3.0: Free fire: 63
-Anubhuti: 105
-Fault in the Flyers: 313
+Ranneeti 3.0: Free fire: 61
+Lift Off: 569
+Paradox Champions League: 354
+Anubhuti: 104
+Fault in the Flyers: 324
 Ad Hoc Hullabaloo: 83
-Analytic Alchemy: 338
-Dimension Forge: 217
+Analytic Alchemy: 348
+Dimension Forge: 228
 Madcap Masters: 115
-Kagazanam Vasarabharanam: 39
-Chalk Art Doodle War: 58
-50 Ka Funda: 245
-Shutter Safari: 314
+Kagazanam Vasarabharanam: 42
+Chalk Art Doodle War: 62
+50 Ka Funda: 250
+Shutter Safari: 329
 Pitch-O-Con :  Marketing Case Study: 125
-Research summit'24: 200
+Research summit'24: 209
 Squid Games: 622
-Kathalok: 155
+Kathalok: 156
 Fetchathon : 0
-LogicLooM 2.0: 628
-Quest Explorer: 610
-Capitol Conclave: 155
+LogicLooM 2.0: 625
+Quest Explorer: 640
+Capitol Conclave: 154
 Worst Pitch Ever: 201
-Ultimate Sports Quiz: 149
+Ultimate Sports Quiz: 162
 Manish Test: 0
 Dream2Dance 3.0: 105
 Drone Dash: 0
-Robo Soccer: 482
+Robo Soccer: 502
 Hack-o-pitch 3.0: 0
 Clay Modeling: 205
 Faces of Paradox: 136
-The Inter House Chess Championship 2024: 425
-Qutopia: 235
+The Inter House Chess Championship 2024: 424
+Qutopia: 244
 Laser Tag: 0
-Voices of Nature: 88
-AI Agent Hackathon: 302
+Voices of Nature: 92
+AI Agent Hackathon: 324
 Ranneeti 3.0: BGMI: 95
 LLMs Without Tears: 0
 Ranneeti 3.0: Valorant: 34
 Compassionathon-B2B Track: 0
-Paradox Badminton League: 741
+Paradox Badminton League: 751
 MysterioMind Maze: 775
-EncryptID: 400
+EncryptID: 410
 Compassionathon: 25
-IPL Arena: 374
-Total Students: 3109
+IPL Arena: 391
+Total Students: 3172
