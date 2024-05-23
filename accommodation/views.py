@@ -524,8 +524,6 @@ def add_accom_entry(request):
     mess_id = data.get('mess')
     try:
         student = Student.objects.get(email=email)
-        if not AccomodationRegistration.objects.filter(student=student).exists():
-            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
         hostel = Hostel.objects.get(id=hostel_id)
         mess = Mess.objects.get(id=mess_id)
         exists = Accommadation.objects.filter(student=student).exists()
@@ -556,8 +554,6 @@ def edit_accom_entry(request):
     mess_id = data.get('mess')
     try:
         student = Student.objects.get(email=email)
-        if not AccomodationRegistration.objects.filter(student=student).exists():
-            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
         accom = Accommadation.objects.filter(student=student).first()
         if not accom:
             return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -584,8 +580,6 @@ def delete_accom_entry(request):
     email = data.get('email')
     try:
         student = Student.objects.get(email=email)
-        if not AccomodationRegistration.objects.filter(student=student).exists():
-            return Response({'message': 'Accommodation not found'}, status=status.HTTP_404_NOT_FOUND)
         Accommadation.objects.filter(student=student).delete()
         return Response({'message': 'Accommodation deleted'}, status=status.HTTP_200_OK)
     except Student.DoesNotExist:
@@ -613,11 +607,6 @@ def mass_upload_accom(request):
         for row in reader:
             try:
                 student = Student.objects.get(email=row['email'])
-                if not AccomodationRegistration.objects.filter(student=student).exists():
-                    print(
-                        f"Accommodation for student {row['email']} not found")
-                    # continue
-                    return Response({'message': f'Accommodation for student {row["email"]} not found'}, status=status.HTTP_404_NOT_FOUND)
                 mess = mess_dict.get(
                     f"{row['mess']}{row['floor']}{row['caterer']}"
                 )
