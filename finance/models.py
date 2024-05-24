@@ -97,6 +97,7 @@ class Voucher(models.Model):
         auto_now_add=True, null=True, blank=True)
     date_updated = models.DateTimeField(auto_now=True)
     voucher_type = models.ForeignKey(VoucherType, on_delete=models.PROTECT)
+    voucher_number = models.CharField(max_length=32, null=True, blank=True)
     file = models.FileField(upload_to="vouchers/", null=True, blank=True)
     bill = models.OneToOneField(
         Bill, null=True, blank=True, on_delete=models.PROTECT, related_name="voucher")

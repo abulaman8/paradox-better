@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
@@ -770,3 +771,18 @@ def create_split(request):
         return Response({'message': 'Department does not exist'}, status=status.HTTP_404_NOT_FOUND)
     except Requirement.DoesNotExist:
         return Response({'message': 'Requirement does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@has_perms(['view_voucher'])
+def voucher_csv(request):
+    vouchers = Voucher.objects.prefetch_related('voucher_type', 'bill').all()
+    data = [{
+        'date_created': voucher.date_created.strftime("%Y-%m-%d"),
+        'voucher_type': voucher.voucher_type.name,
+        'amount': voucher.bill.amount
+
+    } for voucher in vouchers]
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="vouchers.csv"'
+    return response

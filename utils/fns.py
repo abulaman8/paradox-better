@@ -117,6 +117,7 @@ def generate_voucher(bill_id):
     voucher = Voucher.objects.create(
         bill=bill,
         voucher_type=voucher_type,
+        voucher_number=f"PA - {voucher_number : 04d}",
     )
     voucher.file.save(f'{uuid.uuid4()}.pdf',
                       ContentFile(pdf_file), save=True)  # type: ignore
