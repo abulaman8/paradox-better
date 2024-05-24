@@ -528,28 +528,28 @@ def register_for_event(request):
         )
         reg_data.students.set(students)
         reg_data.save()
-        # try:
-        #     print(f"email_list {email_list}")
-        #     print("user_email", user.email)
-        #     recipients = list(set(email_list + [user.email]))
-        #     print(recipients)
-        #     subject = f"Paradox'24 - Registration for {event.name}"
-        #     headers = {'Reply-To': "support@iitmparadox.org"}
-        #     template = Template(event_reg_conf_template)
-        #     context = Context({
-        #         'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
-        #         'event_name': event.name,
-        #     })
-        #     from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"
-        #     rendered = template.render(context)
-        #     email = EmailMultiAlternatives(
-        #         subject, rendered, from_email, recipients, headers=headers)
-        #     email.attach_alternative(rendered, "text/html")
-        #     email.send()
-        #
-        # except Exception as e:
-        #     print(e)
-        #     pass
+        try:
+            print(f"email_list {email_list}")
+            print("user_email", user.email)
+            recipients = list(set(email_list + [user.email]))
+            print(recipients)
+            subject = f"Paradox'24 - Registration for {event.name}"
+            headers = {'Reply-To': "support@iitmparadox.org"}
+            template = Template(event_reg_conf_template)
+            context = Context({
+                'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+                'event_name': event.name,
+            })
+            from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"
+            rendered = template.render(context)
+            email = EmailMultiAlternatives(
+                subject, rendered, from_email, recipients, headers=headers)
+            email.attach_alternative(rendered, "text/html")
+            email.send()
+
+        except Exception as e:
+            print(e)
+            pass
 
         return Response({'message': 'Registered successfully'}, status=status.HTTP_200_OK)
 
