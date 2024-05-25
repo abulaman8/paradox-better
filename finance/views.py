@@ -358,6 +358,8 @@ def upload_bill(request):
     event_id = data.get('event_id')
     # print(data)
     title = data.get('title')
+    print(data.get('requirement_ids'))
+    print(data.get('requirement_ids').split(','))
     bill_type = data.get('bill_type')
     if event_id:
         try:
@@ -389,6 +391,8 @@ def upload_bill(request):
         }, status=status.HTTP_400_BAD_REQUEST
         )
     try:
+        if requirement_ids[0] == '':
+            requirement_ids = []
         requirements = [Requirement.objects.get(id=requirement_id)
                         for requirement_id in requirement_ids]
         for requirement in requirements:

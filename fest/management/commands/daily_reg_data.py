@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'get daily event reg data in csv <email>,<username>,<event>'
 
     def handle(self, *args, **options):
-        yesterday = datetime.now().date() - timedelta(days=1)
+        yesterday = datetime.now().date()  # - timedelta(days=1)
         rd = RegData.objects.prefetch_related('student').filter(
             created_at__date=yesterday
         )
