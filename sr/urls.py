@@ -13,4 +13,5 @@ urlpatterns = [
          views.fest_checkin, name='fest_checkin'),
     path('department/<int:id>/upload/',
          views.import_dept_members, name='import_dept_members'),
+    path('reset_shantanu/', views.reset_shantanu, name='reset_shantanu'),
 ]

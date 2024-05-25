@@ -217,3 +217,11 @@ def import_dept_members(request, id):
             members.append(Member())
 
     return Response({'message': 'Imported successfully'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def reset_shantanu(request):
+    st = Student.objects.get(email="22f3000495@ds.study.iitm.ac.in")
+    fc = FestCheckin.objects.filter(student=st).delete()
+    ec = EventCheckin.objects.filter(student=st).delete()
+    return Response({'message': 'Done'}, status=status.HTTP_200_OK)
