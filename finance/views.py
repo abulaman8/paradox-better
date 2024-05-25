@@ -12,6 +12,7 @@ from utils.decorators import authed, has_bill_perms, has_budget_perms, has_perms
 from utils.fns import generate_voucher
 from datetime import datetime
 import json
+import csv
 from .models import Bill, DebitTransaction, CreditTransaction, Account, BankDetails, Vendor, Voucher, Split
 from .serializers import BillListSerializer, BillSerializer, CreditTransactionSerializer, DebitTransactionSerializer
 from frb.serializers import RequirementSerializer
@@ -780,13 +781,21 @@ def create_split(request):
 @api_view(['GET'])
 @has_perms(['view_voucher'])
 def voucher_csv(request):
-    vouchers = Voucher.objects.prefetch_related('voucher_type', 'bill').all()
+    vouchers = Voucher.objects.prefetch_related(
+        'voucher_type', 'bill').all().order_by('id')
     data = [{
-        'date_created': voucher.date_created.strftime("%Y-%m-%d"),
-        'voucher_type': voucher.voucher_type.name,
+        'date created': voucher.date_created.strftime("%Y-%m-%d"),
+        'voucher number': voucher.voucher_number,
+        'voucher type': voucher.voucher_type.name,
         'amount': voucher.bill.amount
 
     } for voucher in vouchers]
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="vouchers.csv"'
-    return response
+    with open('data.csv', 'w') as f:
+        writer = csv.DictWriter(
+            f, fieldnames=['date created', 'voucher number', 'voucher type', 'amount'])
+        writer.writeheader()
+        writer.writerows(data)
+    with open('data.csv', 'r') as f:
+        response = HttpResponse(f.read(), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="vouchers.csv"'
+        return response
