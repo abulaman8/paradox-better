@@ -11,26 +11,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         yesterday = datetime.now().date()  # - timedelta(days=1)
-        rd = RegData.objects.prefetch_related('student').filter(
-            created_at__date=yesterday
-        )
+        # rd = RegData.objects.prefetch_related('student').filter(
+        #     created_at__date=yesterday
+        # )
+        rd = RegData.objects.all()
+        # print(f"{len(rd)} registrations fetched", flush=True)
+        self.stdout.write(self.style.SUCCESS(
+            f"{len(rd)} registrations fetched"
+        ))
         data = []
         count = 0
         for r in rd.all():
             tlstudent = r.student
-            tluser = User.objects.filter(email=tlstudent.email).first()
-            if not tluser:
-                continue
-            name = tluser.last_name if tluser.first_name[0] == '2' else tluser.first_name + \
-                ' ' + tluser.last_name
-            data.append(f"{tlstudent.email},{name},{r.event.name}")
+            data.append(
+                f"{tlstudent.email},{tlstudent.whatsapp},{r.event.name}")
             for stu in r.students.all():
-                stuser = User.objects.filter(email=stu.email).first()
-                if not stuser:
-                    continue
-                name = stuser.last_name if stuser.first_name[0] == '2' else stuser.first_name + \
-                    ' ' + stuser.last_name
-                data.append(f"{stu.email},{name},{r.event.name}")
+                data.append(f"{stu.email},{stu.whatsapp},{r.event.name}")
             count += 1
             print(f"{count}/{rd.count()} processed", end='\r', flush=True)
 
