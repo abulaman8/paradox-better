@@ -366,8 +366,8 @@ def generate_qr_code(text, file_name):
     img = qr.make_image(
         image_factory=StyledPilImage,
         module_drawer=CircleModuleDrawer(),
-        color_mask=ImageColorMask(color_mask_path='gradient.png'),
-        embeded_image_path='acer.png',
+        color_mask=ImageColorMask(color_mask_path='utils/gradient.png'),
+        embeded_image_path='utils/acer.png',
     )
     inner_eye_mask = style_inner_eyes(img)
     outer_eye_mask = style_outer_eyes(img)
