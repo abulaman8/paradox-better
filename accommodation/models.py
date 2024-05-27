@@ -28,6 +28,8 @@ class Hostel(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     location = models.URLField(max_length=2048, null=True, blank=True)
+    google_space_webhook = models.URLField(
+        max_length=2048, null=True, blank=True)
 
     def __str__(self):
         return self.name

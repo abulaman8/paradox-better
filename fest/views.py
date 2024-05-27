@@ -146,13 +146,32 @@ def check_accom(request):
             return Response(
                 {
                     'registered': False,
-                    'paid': True
+                    'paid': True,
+                    'pwd': accom.pwd,
+                    'jain_food': accom.jain_food,
+                    'outside_india': accom.outside_india,
+                    'arrival_date': accom.arrival_date.timestamp()*1000 if accom.arrival_date else None,
+                    'departure_date': accom.departure_date.timestamp()*1000 if accom.departure_date else None,
+                    'medical_issues': accom.medical_issues,
+                    'emergency_contact': accom.emergency_contact,
+                    'emergency_contact_name': accom.emergency_contact_name,
+                    'emergency_contact_relation': accom.emergency_contact_relation
+
                 }, status=status.HTTP_200_OK)
         if accom and accom.payment_status:
             return Response(
                 {
                     'registered': True,
-                    'paid': True
+                    'paid': True,
+                    'pwd': accom.pwd,
+                    'jain_food': accom.jain_food,
+                    'outside_india': accom.outside_india,
+                    'arrival_date': accom.arrival_date.timestamp()*1000 if accom.arrival_date else None,
+                    'departure_date': accom.departure_date.timestamp()*1000 if accom.departure_date else None,
+                    'medical_issues': accom.medical_issues,
+                    'emergency_contact': accom.emergency_contact,
+                    'emergency_contact_name': accom.emergency_contact_name,
+                    'emergency_contact_relation': accom.emergency_contact_relation
                 }, status=status.HTTP_200_OK)
         return Response({
             'paid': False,
