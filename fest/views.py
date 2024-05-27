@@ -12,11 +12,12 @@ from fest.serializers import FestEventSerializer
 from forms.models import Block, Element
 from utils.templates import fest_reg_template, event_reg_conf_template
 from utils.decorators import authed
-from core.models import Student, Event, Department, Announcement
+from core.models import Student, Event, Department, Announcement, QrCode
 from forms.serializers import FormSerializer
 from forms.types import FormType, BlockType, ElementType, InputType, SelectType, RadioGroupType, CheckboxGroupType
 from .models import FestRegistrstion, AccomodationRegistration
 from typing import List
+import uuid
 
 
 @api_view(['GET'])
@@ -102,6 +103,10 @@ def fest_registration(request):
             arrival_date=arrival_date,
             departure_date=departure_date,
             likelihood=likelihood
+        )
+        QrCode.objects.get_or_create(
+            student=student,
+            code=uuid.uuid4()
         )
         try:
 
