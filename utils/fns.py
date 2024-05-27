@@ -8,6 +8,15 @@ from finance.models import Bill, Voucher, VoucherType
 from .templates import voucher_template, stact, sign, paradox_new_logo, empty
 import pdfkit
 import uuid
+import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.colormasks import ImageColorMask, SolidFillColorMask
+from qrcode.image.styles.moduledrawers import SquareModuleDrawer, RoundedModuleDrawer, GappedSquareModuleDrawer, CircleModuleDrawer
+import PIL
+from PIL import Image, ImageDraw
+
+if not hasattr(PIL.Image, 'Resampling'):
+    PIL.Image.Resampling = PIL.Image
 
 
 def get_user_permissions(user) -> dict[str, dict[str, QuerySet[Permission]]]:
@@ -301,3 +310,70 @@ def get_emp_permissions(obj, user_perms):
     # user = obj
 
     return r
+
+
+def style_inner_eyes(img):
+    img_size = img.size[0]
+    eye_size = 70  # default
+    quiet_zone = 40  # default
+    mask = Image.new('L', img.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rectangle((60, 60, 90, 90), fill=255)  # top left eye
+    draw.rectangle((img_size-90, 60, img_size-60, 90),
+                   fill=255)  # top right eye
+    draw.rectangle((60, img_size-90, 90, img_size-60),
+                   fill=255)  # bottom left eye
+    return mask
+
+
+def style_outer_eyes(img):
+    img_size = img.size[0]
+    eye_size = 70  # default
+    quiet_zone = 40  # default
+    mask = Image.new('L', img.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rectangle((40, 40, 110, 110), fill=255)  # top left eye
+    draw.rectangle((img_size-110, 40, img_size-40, 110),
+                   fill=255)  # top right eye
+    draw.rectangle((40, img_size-110, 110, img_size-40),
+                   fill=255)  # bottom left eye
+    draw.rectangle((60, 60, 90, 90), fill=0)  # top left eye
+    draw.rectangle((img_size-90, 60, img_size-60, 90), fill=0)  # top right eye
+    draw.rectangle((60, img_size-90, 90, img_size-60),
+                   fill=0)  # bottom left eye
+    return mask
+
+
+def generate_qr_code(text, file_name):
+    # Create QR code instance
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    # Add data to the QR code
+    qr.add_data(text)
+    qr.make(fit=True)
+    qr_inner_eyes_img = qr.make_image(image_factory=StyledPilImage,
+                                      eye_drawer=RoundedModuleDrawer(
+                                          radius_ratio=1,),
+                                      color_mask=SolidFillColorMask(back_color=(255, 255, 255), front_color=(63, 42, 86)))
+
+    qr_outer_eyes_img = qr.make_image(image_factory=StyledPilImage,
+                                      color_mask=SolidFillColorMask(front_color=((63, 42, 86))))
+    # Create an image from the QR code
+    img = qr.make_image(
+        image_factory=StyledPilImage,
+        module_drawer=CircleModuleDrawer(),
+        color_mask=ImageColorMask(color_mask_path='gradient.png'),
+        embeded_image_path='acer.png',
+    )
+    inner_eye_mask = style_inner_eyes(img)
+    outer_eye_mask = style_outer_eyes(img)
+    intermediate_img = Image.composite(qr_inner_eyes_img, img, inner_eye_mask)
+    final_image = Image.composite(
+        qr_outer_eyes_img, intermediate_img, outer_eye_mask)
+
+    # Save the image
+    final_image.save(file_name)

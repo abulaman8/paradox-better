@@ -79,12 +79,18 @@ class Student(models.Model):
         return user.first_name + ' ' + user.last_name
 
 
+def custom_qr_upload_to(instance, filename):
+    filename, file_extension = filename.split('.')
+    return f'qr/{instance.code}.{file_extension}'
+
+
 class QrCode(models.Model):
     id = models.AutoField(primary_key=True)
     code = models.CharField(max_length=256, unique=True)
     student = models.OneToOneField(
         Student, on_delete=models.CASCADE, related_name='qr_code')
-    image = models.ImageField(upload_to='qr_codes', null=True, blank=True)
+    image = models.ImageField(
+        upload_to=custom_qr_upload_to, null=True, blank=True)
 
     def __str__(self):
         return self.code
