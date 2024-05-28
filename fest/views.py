@@ -766,3 +766,15 @@ def delete_reg(request, event_id):
         )
     reg_data.delete()
     return Response({'message': 'Registration deleted successfully'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authed()
+def get_qr(request):
+    user = request.user
+    student = Student.objects.get(email=user.email)
+    try:
+        qr = QrCode.objects.get(student=student)
+        return Response({"qr": qr.image.url}, status=status.HTTP_200_OK)
+    except QrCode.DoesNotExist:
+        return Response({"qr": "not generated"}, status=status.HTTP_200_OK)

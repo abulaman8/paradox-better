@@ -5,7 +5,7 @@ from django.template import Template, Context
 import multiprocessing
 
 
-def send_email(email):
+def send_email(email, name, qr):
     try:
         with open('QR.html', 'r') as f:
             accom_open_template = f.read()
@@ -13,7 +13,8 @@ def send_email(email):
         headers = {'Reply-To': "support@iitmparadox.org"}
         template = Template(accom_open_template)
         context = Context({
-            "name": "Shriprasad:q"
+            "name": name,
+            "qr": qr
         })
         subject = "Paradox'24 - Accommodation Open"
         from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"

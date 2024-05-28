@@ -13,7 +13,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # with open('accom_qr.txt', 'r') as f:
         #     emails = f.read().splitlines()
-        emails = ['22f1000598@ds.study.iitm.ac.in']
+        emails = ['21f2001370@ds.study.iitm.ac.in']
         count = 0
         students = Student.objects.filter(email__in=emails)
         for student in students:

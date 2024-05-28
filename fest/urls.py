@@ -23,4 +23,5 @@ urlpatterns = [
     path('user/exists/', views.check_user, name='check_user'),
     path('announcements/', views.get_all_announcements,
          name='get_all_announcements'),
+    path('qr/', views.get_qr, name='get_qr'),
 ]
