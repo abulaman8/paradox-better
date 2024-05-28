@@ -170,13 +170,14 @@ def add_volunteer(request):
 @api_view(['GET'])
 @has_perms(['view_srvolunteer'])
 def get_all_volunteer(request):
-    volunteers = SrVolunteer.objects.prefetch_related('user').all()
+    volunteers = SrVolunteer.objects.prefetch_related(
+        'user').all().order_by('id')
     return Response([{
         'id': v.id,
         'name': f"{v.user.last_name}" if v.user.first_name[0] == '2' else f"{v.user.first_name} {v.user.last_name}",
         'email': v.user.email,
-        'central_checkin': v.can_do_central_checkin,
-        'events': ",".join([event.name for event in v.events.all()])
+        'central_checkin': "Yes" if v.can_do_central_checkin else "No",
+        'events': ", ".join([event.name for event in v.events.all()])
     } for v in volunteers])
 
 
