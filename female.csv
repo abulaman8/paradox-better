@@ -1,5 +1,4 @@
 S. No,Hostel,Room no.,Roll no.,Name of the participant,Arrival date,Departure date,Email ID
-1,Bhadra,107,,,,,
 2,Bhadra,110,23F2000563,K. Aruthra,29-05-2024,02-06-2024,23f2000563@ds.study.iitm.ac.in
 3,Bhadra,111,22F3003150,Rose Angela Vinod,29-05-2024,02-06-2024,22f3003150@ds.study.iitm.ac.in
 4,Bhadra,112,21F3002851,Shobha Garg,29-05-2024,02-06-2024,21f3002851@ds.study.iitm.ac.in
@@ -95,7 +94,6 @@ S. No,Hostel,Room no.,Roll no.,Name of the participant,Arrival date,Departure da
 94,Bhadra,415,24F1002850,Tuhina Vinayak,29-05-2024,02-06-2024,24f1002850@ds.study.iitm.ac.in
 95,Bhadra,417,23F3000294,Srinidhi Dwarakanathan,29-05-2024,02-06-2024,23f3000294@es.study.iitm.ac.in
 96,Bhadra,418,24F1100040,Surochita Ghosh,28-05-2024,02-06-2024,24f1100040@es.study.iitm.ac.in
-97,Bhadra,419,,,,,
 98,Bhadra,420,24F1100108,Nehal Chaure,28-05-2024,02-06-2024,24f1100108@es.study.iitm.ac.in
 99,Bhadra,422,22DP2000156,Madhuri K S Achar,29-05-2024,02-06-2024,22dp2000156@ds.study.iitm.ac.in
 100,Bhadra,423,23F3000508,Kajal,28-05-2024,04-06-2024,23f3000508@es.study.iitm.ac.in
@@ -110,45 +108,11 @@ S. No,Hostel,Room no.,Roll no.,Name of the participant,Arrival date,Departure da
 109,Bhadra,442,23F3000327,Aishwarya K S,28-05-2024,04-06-2024,23f3000327@es.study.iitm.ac.in
 110,Bhadra,443,23F3000457,G. Dharani,28-05-2024,02-06-2024,23f3000457@es.study.iitm.ac.in
 111,Bhadra,444,24F1100062,Prateeksha Naveen Kajekar,28-05-2024,02-06-2024,24f1100062@es.study.iitm.ac.in
-112,Bhadra,445,,,,,
-113,Bhadra,446,,,,,
 114,Bhadra,449,24F1100111,Sudiksha S Hiremath,28-05-2024,02-06-2024,24f1100111@es.study.iitm.ac.in
-115,Bhadra,450,,,,,
-116,Bhadra,455,,,,,
 117,Bhadra,501,23F3000100,Divyanshi Gupta,02-06-2024,04-06-2024,23f3000100@es.study.iitm.ac.in
 118,Bhadra,502,24F1100047,N.V.Mahima,02-06-2024,04-06-2024,24f1100047@es.study.iitm.ac.in
 119,Bhadra,503,23F3100030,Soma Mandal,02-06-2024,04-06-2024,23f3100030@es.study.iitm.ac.in
 120,Bhadra,504,24F1100050,Shruthi.R,02-06-2024,04-06-2024,24f1100050@es.study.iitm.ac.in
-121,Bhadra,506,,,,,
-122,Bhadra,507,,,,,
-123,Bhadra,508,,,,,
-124,Bhadra,511,,,,,
-125,Bhadra,515,,,,,
-126,Bhadra,517,,,,,
-127,Bhadra,518,,,,,
-128,Bhadra,519,,,,,
-129,Bhadra,525,,,,,
-130,Bhadra,526,,,,,
-131,Bhadra,527,,,,,
-132,Bhadra,528,,,,,
-133,Bhadra,531,,,,,
-134,Bhadra,533,,,,,
-135,Bhadra,534,,,,,
-136,Bhadra,535,,,,,
-137,Bhadra,536,,,,,
-138,Bhadra,538,,,,,
-139,Bhadra,539,,,,,
-140,Bhadra,540,,,,,
-141,Bhadra,541,,,,,
-142,Bhadra,542,,,,,
-143,Bhadra,543,,,,,
-144,Bhadra,546,,,,,
-145,Bhadra,547,,,,,
-146,Bhadra,548,,,,,
-147,Bhadra,549,,,,,
-148,Bhadra,550,,,,,
-149,Bhadra,554,,,,,
-150,Bhadra,555,,,,,
 151,Sabarmati,205,23F2000668,Abay Nandhiga,26-05-2024,02-06-2024,23f2000668@ds.study.iitm.ac.in
 152,Sabarmati,217,22F2000718,Ananyaa S,26-05-2024,02-06-2024,22f2000718@ds.study.iitm.ac.in
 153,Sabarmati,219,22F1001249,Athithya Arunakirinathan,26-05-2024,02-06-2024,22f1001249@ds.study.iitm.ac.in
@@ -183,46 +147,6 @@ S. No,Hostel,Room no.,Roll no.,Name of the participant,Arrival date,Departure da
 182,Sabarmati,561,23F1001999,Tulika Chatterjee,26-05-2024,02-06-2024,23f1001999@ds.study.iitm.ac.in
 183,Sabarmati,562,22F3001216,Vaishnavi Srivastava,26-05-2024,02-06-2024,22f3001216@ds.study.iitm.ac.in
 184,Sabarmati,565,22F3000448,Veekshitha Thammana,26-05-2024,02-06-2024,22f3000448@ds.study.iitm.ac.in
-185,Sabarmati,566,,,,,
-186,Sabarmati,567,,,,,
-187,Sabarmati,570,,,,,
-188,Sabarmati,645,,,,,
-189,Sabarmati,660,,,,,
-190,Sabarmati,663,,,,,
-191,Sabarmati,667,,,,,
-192,Sabarmati,671,,,,,
-193,Sabarmati,701,,,,,
-194,Sabarmati,702,,,,,
-195,Sabarmati,714,,,,,
-196,Sabarmati,715,,,,,
-197,Sabarmati,718,,,,,
-198,Sabarmati,723,,,,,
-199,Sabarmati,727,,,,,
-200,Sabarmati,734,,,,,
-201,Sabarmati,763,,,,,
-202,Sabarmati,764,,,,,
-203,Sabarmati,765,,,,,
-204,Sabarmati,766,,,,,
-205,Sabarmati,767,,,,,
-206,Sabarmati,769,,,,,
-207,Sabarmati,802,,,,,
-208,Sabarmati,803,,,,,
-209,Sabarmati,808,,,,,
-210,Sabarmati,810,,,,,
-211,Sabarmati,811,,,,,
-212,Sabarmati,814,,,,,
-213,Sabarmati,817,,,,,
-214,Sabarmati,818,,,,,
-215,Sabarmati,859,,,,,
-216,Sabarmati,861,,,,,
-217,Sabarmati,862,,,,,
-218,Sabarmati,865,,,,,
-219,Sabarmati,866,,,,,
-220,Sabarmati,867,,,,,
-221,Sabarmati,868,,,,,
-222,Sabarmati,869,,,,,
-223,Sabarmati,870,,,,,
-224,Sabarmati,872,,,,,
 225,Sarayu,103,24F1000913,Jahnavi S N,29-05-2024,02-06-2024,24f1000913@ds.study.iitm.ac.in
 226,Sarayu,103,24F1000185,Esha Mohan Hinde,29-05-2024,02-06-2024,24f1000185@ds.study.iitm.ac.in
 227,Sarayu,106,24F1000397,Sakshi,29-05-2024,02-06-2024,24f1000397@ds.study.iitm.ac.in
@@ -236,7 +160,6 @@ S. No,Hostel,Room no.,Roll no.,Name of the participant,Arrival date,Departure da
 235,Sarayu,113,21F1000509,Swathi Nayak N,29-05-2024,02-06-2024,21f1000509@ds.study.iitm.ac.in
 236,Sarayu,113,22F1001228,Anwita Metre,29-05-2024,02-06-2024,22f1001228@ds.study.iitm.ac.in
 237,Sarayu,312,22F3001888,Pranisha Goyal,29-05-2024,02-06-2024,22f3001888@ds.study.iitm.ac.in
-238,Sarayu,312,,,,,
 239,Sarayu,313,21F1001205,Devi Vrinda A,29-05-2024,02-06-2024,21f1001205@ds.study.iitm.ac.in
 240,Sarayu,313,21F3002793,Shruti Narayan,29-05-2024,02-06-2024,21f3002793@ds.study.iitm.ac.in
 241,Sarayu,345,22F3003206,Parnikaa Basavanagudi Ramachandra,29-05-2024,02-06-2024,22f3003206@ds.study.iitm.ac.in
@@ -569,13 +492,6 @@ S. No,Hostel,Room no.,Roll no.,Name of the participant,Arrival date,Departure da
 568,Swarnamukhi,905,23F3000635,Purba Shaw,29-05-2024,02-06-2024,23f3000635@es.study.iitm.ac.in
 569,Swarnamukhi,905,23F3000152,Satti Pujita,29-05-2024,02-06-2024,23f3000152@es.study.iitm.ac.in
 570,Swarnamukhi,906,23F3000206,Nidhi Prasad,29-05-2024,02-06-2024,23f3000206@es.study.iitm.ac.in
-571,Swarnamukhi,906,,,,,
-572,Swarnamukhi,915,,,,,
-573,Swarnamukhi,915,,,,,
-574,Swarnamukhi,916,,,,,
-575,Swarnamukhi,916,,,,,
-576,Swarnamukhi,917,,,,,
-577,Swarnamukhi,917,,,,,
 578,Swarnamukhi,918,23F3000143,Roshni Chaudhuri,29-05-2024,02-06-2024,23f3000143@es.study.iitm.ac.in
 579,Swarnamukhi,918,22F2000417,Sangeetha Priya S,29-05-2024,02-06-2024,22f2000417@ds.study.iitm.ac.in
 580,Swarnamukhi,919,23F2002269,Prashi Jain,29-05-2024,02-06-2024,23f2002269@ds.study.iitm.ac.in
