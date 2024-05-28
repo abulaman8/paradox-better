@@ -152,7 +152,7 @@ def add_volunteer(request):
     data = request.data
     email = data.get('email')
     event_ids = data.get('events')
-    central_checkin = data.get('central_checkin')
+    central_checkin = True if data.get('central_checkin') == 'Yes' else False
     try:
         user = User.objects.filter(email=email).first()
         if not user:
@@ -186,7 +186,7 @@ def get_all_volunteer(request):
 def update_volunteer(request, id):
     data = request.data
     event_ids = data.get('events')
-    central_checkin = data.get('central_checkin')
+    central_checkin = True if data.get('central_checkin') == 'Yes' else False
     try:
         events = Event.objects.filter(id__in=event_ids).all()
         volunteer = SrVolunteer.objects.get(id=id)
