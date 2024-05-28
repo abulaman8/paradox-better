@@ -167,6 +167,19 @@ def add_volunteer(request):
         return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+@has_perms(['view_srvolunteer'])
+def get_all_volunteer(request):
+    volunteers = SrVolunteer.objects.prefetch_related('user').all()
+    return Response([{
+        'id': v.id,
+        'name': f"{v.user.lastname}" if v.user.first_name[0] == '2' else f"{v.user.firstname} {v.user.lastname}",
+        'email': v.user.email,
+        'Central_CheckIn': v.can_do_central_checkin,
+        'events': ",".join([event.name for event in v.events.all()])
+    } for v in volunteers])
+
+
 @api_view(['PUT'])
 @has_perms(['change_srvolunteer'])
 def update_volunteer(request, id):
@@ -197,30 +210,30 @@ def delete_volunteer(request, id):
         return Response({'message': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
-# @has_perms(['change_department'])
-def import_dept_members(request, id):
-    csv_file = request.FILES.get('csv_file').read().decode('utf-8')
-    if not csv_file:
-        return Response({'message': 'No CSV file found'}, status=status.HTTP_400_BAD_REQUEST)
-    # column names - Name, Roll No, Email, Mobile, Discord Username, Dept/Team Name, Role, Description, Status.
-    members = []
-    with StringIO(csv_file) as f:
-        csv_data = csv.reader(f)
-        for row in csv_data:
-            name = row[0]
-            roll_no = row[1]
-            email = row[2]
-            mobile = row[3]
-            discord_username = row[4]
-            dept_name = row[5]
-            role = row[6]
-            description = row[7]
-            member_status = row[8]
-            members.append(Member())
-
-    return Response({'message': 'Imported successfully'}, status=status.HTTP_200_OK)
-
+# @api_view(['POST'])
+# # @has_perms(['change_department'])
+# def import_dept_members(request, id):
+#     csv_file = request.FILES.get('csv_file').read().decode('utf-8')
+#     if not csv_file:
+#         return Response({'message': 'No CSV file found'}, status=status.HTTP_400_BAD_REQUEST)
+#     # column names - Name, Roll No, Email, Mobile, Discord Username, Dept/Team Name, Role, Description, Status.
+#     members = []
+#     with StringIO(csv_file) as f:
+#         csv_data = csv.reader(f)
+#         for row in csv_data:
+#             name = row[0]
+#             roll_no = row[1]
+#             email = row[2]
+#             mobile = row[3]
+#             discord_username = row[4]
+#             dept_name = row[5]
+#             role = row[6]
+#             description = row[7]
+#             member_status = row[8]
+#             members.append(Member())
+#
+#     return Response({'message': 'Imported successfully'}, status=status.HTTP_200_OK)
+#
 
 @api_view(['GET'])
 def reset_shantanu(request):
