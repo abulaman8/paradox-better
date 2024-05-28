@@ -87,6 +87,8 @@ fest_reg_template = '''
         <p>And guess what?  We've got an electrifying surprise event in store for everyone, and details will be unveiled shortly. Stay tuned to our social media channels for the latest updates and sneak peeks!</p>
         <p>Please note that this email serves as confirmation of your festival registration. As for accommodation, fret not, registration form will soon be rolled out on our website. But bear in mind, accommodation slots are limited and will be allocated on a first-come, first-served basis.</p>
         <p>The check-in desk for accommodation opens its doors on May 29th and remains accessible until June 2nd. Operating hours are from 8:00 AM to 8:00 PM daily. Plan your travel arrangements accordingly to ensure a seamless check-in process.</p>
+        <p>The below QR will be your Pass/Indentifaction throughout the fest.</p>
+        <img src="{{qr}}" alt="qr code">
         <p>Should you have any inquiries or doubts, please don't hesitate to reach out to us at <a href="mailto:support@iitmparadox.org">support@iitmparadox.org</a>.</p>
 
         <p>Warm Regards,</p>

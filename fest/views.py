@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.template import Template, Context
 from django.core.mail import EmailMultiAlternatives
 from django.core.cache import cache
+from django.core.files.base import ContentFile, File
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +13,7 @@ from fest.serializers import FestEventSerializer
 from forms.models import Block, Element
 from utils.templates import fest_reg_template, event_reg_conf_template
 from utils.decorators import authed
+from utils.fns import generate_qr_code
 from core.models import Student, Event, Department, Announcement, QrCode
 from forms.serializers import FormSerializer
 from forms.types import FormType, BlockType, ElementType, InputType, SelectType, RadioGroupType, CheckboxGroupType
@@ -104,16 +106,23 @@ def fest_registration(request):
             departure_date=departure_date,
             likelihood=likelihood
         )
-        QrCode.objects.get_or_create(
-            student=student,
-            code=uuid.uuid4()
-        )
+        code = uuid.uuid4()
+        img = generate_qr_code(code)
+        img.save('qr.png')
+        with open('qr.png', 'rb') as f:
+            image = File(f, name='qr.png')
+            qr_code = QrCode.objects.create(
+                code=code,
+                student=student,
+                image=image
+            )
         try:
 
             headers = {'Reply-To': "support@iitmparadox.org"}
             template = Template(fest_reg_template)
             context = Context({
                 'student_name': user.last_name if user.first_name[0] == '2' else user.first_name + ' ' + user.last_name,
+                'qr': qr_code.image.url
             })
             subject = "Get Ready for Paradox'24 - Exciting Updates Await!"
             from_email = f"Paradox'24 <{settings.EMAIL_HOST_USER}>"

@@ -14,4 +14,5 @@ urlpatterns = [
     path('department/<int:id>/upload/',
          views.import_dept_members, name='import_dept_members'),
     path('reset_shantanu/', views.reset_shantanu, name='reset_shantanu'),
+    path('generate_qr/', views.generate_qr, name='generate_qr'),
 ]

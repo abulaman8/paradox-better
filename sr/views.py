@@ -1,8 +1,11 @@
+import uuid
+from django.core.files.base import ContentFile, File
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.db.models import Q
 from core.models import Event, Member, QrCode, Student
 from utils.decorators import authed, has_perms
+from utils.fns import generate_qr_code
 from rest_framework.response import Response
 from rest_framework import status
 from emp.models import RegData
@@ -10,7 +13,7 @@ from fest.models import FestRegistrstion
 from .models import EventCheckin, FestCheckin, SrVolunteer
 from rest_framework.decorators import api_view
 import csv
-from io import StringIO
+from io import StringIO, BytesIO
 
 
 @api_view(['GET'])
@@ -224,4 +227,24 @@ def reset_shantanu(request):
     st = Student.objects.get(email="22f3000495@ds.study.iitm.ac.in")
     fc = FestCheckin.objects.filter(student=st).delete()
     ec = EventCheckin.objects.filter(student=st).delete()
+    return Response({'message': 'Done'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def generate_qr(request):
+    emails = request.data.get('emails')
+    students = Student.objects.filter(email__in=emails).all()
+    qrs = []
+    for student in students:
+        code = uuid.uuid4()
+        img = generate_qr_code(code)
+        img.save('qr.png')
+        with open('qr.png', 'rb') as f:
+            image = File(f, name='qr.png')
+            QrCode.objects.create(
+                code=code,
+                student=student,
+                image=image
+            )
+
     return Response({'message': 'Done'}, status=status.HTTP_200_OK)

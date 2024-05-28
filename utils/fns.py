@@ -344,7 +344,7 @@ def style_outer_eyes(img):
     return mask
 
 
-def generate_qr_code(text, file_name):
+def generate_qr_code(text):
     # Create QR code instance
     qr = qrcode.QRCode(
         version=1,
@@ -374,6 +374,4 @@ def generate_qr_code(text, file_name):
     intermediate_img = Image.composite(qr_inner_eyes_img, img, inner_eye_mask)
     final_image = Image.composite(
         qr_outer_eyes_img, intermediate_img, outer_eye_mask)
-
-    # Save the image
-    final_image.save(file_name)
+    return final_image
