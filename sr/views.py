@@ -158,7 +158,7 @@ def add_volunteer(request):
         if not user:
             return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         events = Event.objects.filter(id__in=event_ids).all()
-        volunteer = SrVolunteer(
+        volunteer = SrVolunteer.objects.create(
             user=user, can_do_central_checkin=central_checkin)
         volunteer.events.set(events)
         volunteer.save()
