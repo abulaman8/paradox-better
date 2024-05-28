@@ -241,10 +241,14 @@ def generate_qr(request):
         img.save('qr.png')
         with open('qr.png', 'rb') as f:
             image = File(f, name='qr.png')
-            QrCode.objects.create(
-                code=code,
-                student=student,
-                image=image
-            )
+            try:
+                qr = QrCode.objects.create(
+                    code=code,
+                    student=student,
+                    image=image
+                )
+            except Exception as e:
+                print(e)
+                pass
 
     return Response({'message': 'Done'}, status=status.HTTP_200_OK)
