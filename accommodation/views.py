@@ -204,6 +204,38 @@ def get_user_accommodation(request, id):
         return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(['GET'])
+@has_accom_perms(['view_accommadation'])
+def check_accom(request, email):
+    try:
+        student = Student.objects.get(email=email)
+        accommadation = Accommadation.objects.prefetch_related(
+            'hostel', 'mess').filter(student=student).first()
+        if not accommadation:
+            return Response({
+                "exists": False
+            })
+        return Response(
+            {
+                "exists": True,
+                "hostel": {
+                    "id": accommadation.hostel.id,
+                    "name": accommadation.hostel.name
+                },
+                "room": accommadation.room,
+                "mess": {
+                    "id": accommadation.mess.id,
+                    "name": accommadation.mess.name,
+                    "floor": accommadation.mess.floor,
+                    "caterer": accommadation.mess.caterer
+                }
+
+            }
+        )
+    except Student.DoesNotExist:
+        return Response({'message': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 @api_view(['PUT'])
 # @has_perms(['change_accommadation'])
 @authed()

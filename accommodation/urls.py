@@ -6,6 +6,7 @@ urlpatterns = [
     path('accom/all/', views.get_accom_entries, name='get_accom_entries'),
     path('accom/add/', views.add_accom_entry, name='add_accom_entry'),
     path('accom/edit/', views.edit_accom_entry, name='edit_accom_entry'),
+    path('accom/check/<str:email>/', views.check_accom, name='check_accom'),
     path('accom/delete/', views.delete_accom_entry,
          name='delete_accom_entry'),
     path('accom/bulk/add/', views.mass_upload_accom, name='mass_upload_accom'),
