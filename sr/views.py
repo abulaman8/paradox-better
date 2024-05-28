@@ -267,7 +267,10 @@ def reset_shantanu(request):
 @api_view(['POST'])
 def generate_qr(request):
     emails = request.data.get('emails')
-    students = Student.objects.filter(email__in=emails).all()
+    students = []
+    for em in emails:
+        student, created = Student.objects.get_or_create(email=em)
+        students.append(student)
     qrs = []
     for student in students:
         code = uuid.uuid4()
