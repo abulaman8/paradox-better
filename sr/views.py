@@ -3,6 +3,8 @@ from django.core.files.base import ContentFile, File
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.core.mail import send_mail, EmailMessage
+from django.conf import settings
 from core.models import Event, Member, QrCode, Student
 from utils.decorators import authed, has_perms
 from utils.fns import generate_qr_code
@@ -14,6 +16,8 @@ from .models import EventCheckin, FestCheckin, SrVolunteer
 from rest_framework.decorators import api_view
 import csv
 from io import StringIO, BytesIO
+import random
+import string
 
 
 @api_view(['GET'])
@@ -162,6 +166,22 @@ def add_volunteer(request):
             user=user, can_do_central_checkin=central_checkin)
         volunteer.events.set(events)
         volunteer.save()
+        password = "".join(random.choices(
+            string.ascii_uppercase + string.digits, k=8))
+        user.set_password(password)
+        user.save()
+        subject = 'SR Volunteer Credentials'
+        from_email = f'Accommodation - Paradox\'24 <{settings.EMAIL_HOST_USER}>'
+        message = 'Hi, your username is {} and password is {}'.format(
+            user.username, password)
+        mail = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=from_email,
+            to=[email],
+            cc=['studentrelations@iitmparadox.org'],
+        )
+        mail.send(fail_silently=True)
         return Response({'message': 'Volunteer added'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)

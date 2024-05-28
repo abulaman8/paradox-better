@@ -2,7 +2,7 @@ import json
 import requests
 import multiprocessing
 
-with open('remaining.txt', 'r') as f:
+with open('accom_qr.txt', 'r') as f:
     emails = f.read().splitlines()
 
 url = "https://backend.iitmparadox.org/sr/generate_qr/"
