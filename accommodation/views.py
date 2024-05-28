@@ -802,10 +802,12 @@ def add_accom_volunteer_bulk(request):
 @api_view(['GET'])
 @has_accom_perms(['view_accomvolunteer'])
 def get_all_volunteers(request):
-    vols = AccomVolunteer.objects.prefetch_related('user', 'hostels').all()
+    vols = AccomVolunteer.objects.prefetch_related(
+        'user', 'hostels').all().order_by('id')
     data = []
     for vol in vols:
         data.append({
+            "id": vol.id,
             "name": f"{vol.user.last_name}" if vol.user.first_name[0] == '2' else f"{vol.user.first_name} {vol.user.last_name}",
             "email": vol.user.email,
             "hostels": ", ".join([hostel.name for hostel in vol.hostels.all()])
