@@ -173,7 +173,7 @@ def get_all_volunteer(request):
     volunteers = SrVolunteer.objects.prefetch_related('user').all()
     return Response([{
         'id': v.id,
-        'name': f"{v.user.lastname}" if v.user.first_name[0] == '2' else f"{v.user.firstname} {v.user.lastname}",
+        'name': f"{v.user.last_name}" if v.user.first_name[0] == '2' else f"{v.user.first_name} {v.user.last_name}",
         'email': v.user.email,
         'Central_CheckIn': v.can_do_central_checkin,
         'events': ",".join([event.name for event in v.events.all()])
