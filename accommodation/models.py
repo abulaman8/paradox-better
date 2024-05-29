@@ -63,7 +63,7 @@ class Accommadation(models.Model):
     supplies_checked_out = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.student.email + " - " + self.hostel.name + " - " + self.mess.name
+        return self.student.email
 
 
 class AccomVolunteer(models.Model):

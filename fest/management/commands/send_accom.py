@@ -43,7 +43,7 @@ class Command(BaseCommand):
     help = 'send qr mails'
 
     def handle(self, *args, **options):
-        with open('missed', 'r') as f:
+        with open('female.csv', 'r') as f:
             emails = f.read().splitlines()
         # emails = [
         #     '5,Bhadra,113,24F1001636,Swathi A Menon,29-05-2024,02-06-2024,21f1000506@ds.study.iitm.ac.in',

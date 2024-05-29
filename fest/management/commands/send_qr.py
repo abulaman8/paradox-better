@@ -37,7 +37,7 @@ class Command(BaseCommand):
     help = 'send qr mails'
 
     def handle(self, *args, **options):
-        with open('missed', 'r') as f:
+        with open('qr_email_pairs.csv', 'r') as f:
             emails = f.read().splitlines()
         # emails = [
         #     '21f1000506@ds.study.iitm.ac.in,https://paradox-central.s3.amazonaws.com/qr/9db32182-5bf6-46b4-8e89-1274fb6d1c3f.png',
