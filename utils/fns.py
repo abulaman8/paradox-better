@@ -116,6 +116,7 @@ def generate_voucher(bill_id):
         'account_holder': bill.vendor.bank_details.account_holder_name if bill.vendor and bill.vendor.bank_details else '',
         'bank': bill.vendor.bank_details.bank_name if bill.vendor and bill.vendor.bank_details else '',
         'empty': f'{img_data}{empty}',
+        'upi': bill.upi if bill.upi else False
 
     }
     # print(data)

@@ -165,6 +165,15 @@
 			</tr>
 
 		</table>
+		{% if upi %}
+		<p class="big">UPI Details</p>
+		<table>
+			<tr>
+				<td><b>UPI ID</b></td>
+				<td>{{ upi }}</td>
+			</tr>
+		</table>
+		{%  else %}
 		<p class="big">Vendor Bank Details</p>
 		<table>
 			<tr>
@@ -185,6 +194,7 @@
 			</tr>
 
 		</table>
+		{% endif %}
 
 	</div>
 	<div class="description">
