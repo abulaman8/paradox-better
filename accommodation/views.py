@@ -219,15 +219,15 @@ def check_accom(request, email):
             {
                 "exists": True,
                 "hostel": {
-                    "id": accommadation.hostel.id if accommadation.hostel else None,
-                    "name": accommadation.hostel.name if accommadation.hostel else None
+                    "id": accommadation.hostel.id,
+                    "name": accommadation.hostel.name
                 },
                 "room": accommadation.room,
                 "mess": {
-                    "id": accommadation.mess.id if accommadation.mess else None,
-                    "name": accommadation.mess.name if accommadation.mess else None,
-                    "floor": accommadation.mess.floor if accommadation.mess else None,
-                    "caterer": accommadation.mess.caterer if accommadation.mess else None
+                    "id": accommadation.mess.id,
+                    "name": accommadation.mess.name,
+                    "floor": accommadation.mess.floor,
+                    "caterer": accommadation.mess.caterer
                 }
 
             }
