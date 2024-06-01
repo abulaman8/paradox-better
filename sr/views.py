@@ -6,13 +6,14 @@ from django.db.models import Q
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from core.models import Event, Member, QrCode, Student
-from utils.decorators import authed, has_perms
+from utils.decorators import authed
 from utils.fns import generate_qr_code
 from rest_framework.response import Response
 from rest_framework import status
 from emp.models import RegData
 from fest.models import FestRegistrstion
 from .models import EventCheckin, FestCheckin, SrVolunteer
+from .decorators import has_sr_perms
 from rest_framework.decorators import api_view
 import csv
 from io import StringIO, BytesIO
@@ -151,7 +152,7 @@ def get_event_participants(request, event_id):
 
 
 @api_view(['POST'])
-@has_perms(['add_srvolunteer'])
+@has_sr_perms(['add_srvolunteer'])
 def add_volunteer(request):
     data = request.data
     email = data.get('email')
@@ -188,7 +189,7 @@ def add_volunteer(request):
 
 
 @api_view(['GET'])
-@has_perms(['view_srvolunteer'])
+@has_sr_perms(['view_srvolunteer'])
 def get_all_volunteer(request):
     volunteers = SrVolunteer.objects.prefetch_related(
         'user').all().order_by('id')
@@ -202,7 +203,7 @@ def get_all_volunteer(request):
 
 
 @api_view(['PUT'])
-@has_perms(['change_srvolunteer'])
+@has_sr_perms(['change_srvolunteer'])
 def update_volunteer(request, id):
     data = request.data
     event_ids = data.get('events')
@@ -221,7 +222,7 @@ def update_volunteer(request, id):
 
 
 @api_view(['DELETE'])
-@has_perms(['delete_srvolunteer'])
+@has_sr_perms(['delete_srvolunteer'])
 def delete_volunteer(request, id):
     try:
         volunteer = SrVolunteer.objects.get(id=id)
@@ -232,7 +233,7 @@ def delete_volunteer(request, id):
 
 
 # @api_view(['POST'])
-# # @has_perms(['change_department'])
+# # @has_sr_perms(['change_department'])
 # def import_dept_members(request, id):
 #     csv_file = request.FILES.get('csv_file').read().decode('utf-8')
 #     if not csv_file:
@@ -289,3 +290,18 @@ def generate_qr(request):
                 pass
 
     return Response({'message': 'Done'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@has_sr_perms(['view_srvolunteer'])
+def volunteer_stats(request):
+    vols = SrVolunteer.objects.prefetch_related('user').all()
+    data = []
+    for v in vols:
+        data.append({
+            'name': v.user.last_name if v.user.first_name[0] == '2' else f"{v.user.first_name} {v.user.last_name}",
+            'email': v.user.email,
+            'event_checkins': EventCheckin.objects.filter(volunteer=v).count(),
+            'fest_checkins': FestCheckin.objects.filter(volunteer=v).count(),
+        })
+    return Response(data, status=status.HTTP_200_OK)

@@ -292,12 +292,12 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_HOST_USER = 'noreply@iitmparadox.org'
-# EMAIL_HOST_PASSWORD = 'qcfflqimdnyofera'
-EMAIL_HOST = 'smtp.office365.com'
-EMAIL_HOST_USER = 'noreply@mail.iitmparadox.org'
-EMAIL_HOST_PASSWORD = 'Fuc80283'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'noreply@iitmparadox.org'
+EMAIL_HOST_PASSWORD = 'qcfflqimdnyofera'
+# EMAIL_HOST = 'smtp.office365.com'
+# EMAIL_HOST_USER = 'noreply@mail.iitmparadox.org'
+# EMAIL_HOST_PASSWORD = 'Fuc80283'
 EMAIL_PORT = 587
 
 
