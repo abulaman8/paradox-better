@@ -315,7 +315,7 @@ def view_all_events(request):
     dept_id = data.get('dept_id')
     event_id = data.get('event_id')
     user = request.user
-    if user.groups.filter(name="secretary").exists():
+    if user.groups.filter(name="secretary").exists() or user.groups.filter(name="event_admin").exists():
         c = cache.get('emp_all_events')
         if not c:
             events = Event.objects.all()
