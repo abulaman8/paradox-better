@@ -897,11 +897,11 @@ def get_csv_data(request):
             d['user'] = {}
             d['user']['name'] = f"{user.first_name} {user.last_name}"
             d['user']['email'] = user.email
-            d['data']['attended'] = "Yes" if EventCheckin.objects.filter(
+            d['user']['attended'] = "Yes" if EventCheckin.objects.filter(
                 event=event, student=student).exists() else "No"
             d['data'] = reg.data
             data.append(d)
-        cols = ['name', 'email']
+        cols = ['name', 'email', 'attended']
         sample = data[0]
         allowed_element_ids = []
         sample_data = sample['data']
@@ -917,7 +917,8 @@ def get_csv_data(request):
                 cols.append(sample["data"][key].get("label", "No Label"))
         values = []
         for d in data:
-            row = [d["user"]["name"], d["user"]["email"]]
+            row = [d["user"]["name"], d["user"]
+                   ["email"], d["user"]["attended"]]
             for key in d["data"]:
                 if unfiltered_access:
                     row.append(d["data"][key]["value"])
