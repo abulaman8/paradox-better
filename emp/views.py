@@ -9,9 +9,10 @@ from django.contrib.auth.models import Permission
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department, Role
+from core.models import FAQ, Action, ApprovalStatus, Link, Sponsor, Event, Department, Role, Student
 from core.serializers import UserSerializer
 from forms.types import FormType, SelectType, RadioGroupType, ElementType, InputType, BlockType, CheckboxGroupType
+from sr.models import EventCheckin
 from .models import RegData, Round, SomeDude
 from .serializers import RoundSerializer, EventSerializer, SimpleEventSerializer
 from utils.decorators import has_perms, authed
@@ -847,11 +848,14 @@ def view_event_reg_data(request):
                 allowed_el_ids.append(el_id)
         for reg in reg_data:
             user = User.objects.filter(email=reg.student.email).first()
+            student = Student.objects.get(email=reg.student.email)
             if not user:
                 continue
             r = {}
             r['name'] = f"{user.first_name} {user.last_name}"
             r['email'] = user.email
+            r['attended'] = "Yes" if EventCheckin.objects.filter(
+                event=event, student=student).exists() else "No"
             for key in reg.data.keys():
                 if unfiltered_access:
                     # print(reg.data[key]['id'], reg.data[key]['label'])
@@ -886,12 +890,15 @@ def get_csv_data(request):
 
         for reg in reg_data:
             user = User.objects.filter(email=reg.student.email).first()
+            student = Student.objects.get(email=reg.student.email)
             if not user:
                 continue
             d = {}
             d['user'] = {}
             d['user']['name'] = f"{user.first_name} {user.last_name}"
             d['user']['email'] = user.email
+            d['data']['attended'] = "Yes" if EventCheckin.objects.filter(
+                event=event, student=student).exists() else "No"
             d['data'] = reg.data
             data.append(d)
         cols = ['name', 'email']
