@@ -34,6 +34,7 @@ urlpatterns = [
     path('dummy/', views.gen_dummy_vouch, name='gen_dummy_vouch'),
     path('voucher/all/', views.get_all_vouchers, name='get_all_vouchers'),
     path('voucher/csv/', views.voucher_csv, name='voucher_csv'),
+    path('vendor/all/', views.all_vendors, name='all_vendors'),
 
 
 

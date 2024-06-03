@@ -804,3 +804,14 @@ def voucher_csv(request):
         response = HttpResponse(f.read(), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="vouchers.csv"'
         return response
+
+
+@api_view(['GET'])
+def all_vendors(request):
+    vendors = Vendor.objects.all()
+    data = [{
+        "name": v.name,
+        "gst_number": v.gst_number,
+        "address": v.address
+    } for v in vendors]
+    return Response(data, status=status.HTTP_200_OK)
