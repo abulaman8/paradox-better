@@ -53,3 +53,20 @@ class RegData(models.Model):
 
     def __str__(self):
         return self.event.name + " - " + self.student.email
+
+
+# class EventPosition(models.Model):
+#
+#     name_choices = [
+#         ('winner', 'Winner'),
+#         ('runner-up', 'Runner-up'),
+#         ('finalist', 'Finalist')
+#     ]
+#
+#     id = models.AutoField(primary_key=True)
+#     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=100)
+#     description = models.TextField()
+#
+#     def __str__(self):
+#         return self.name

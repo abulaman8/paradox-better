@@ -585,11 +585,16 @@ def final_level_approval(request, bill_id):
                     )
             else:
                 account = bill.account
+                print(account)
                 dept = Department.objects.filter(account=account).first()
-                event = Event.objects.filter(department=dept).first()
+                print(dept)
+                event = Event.objects.filter(account=account).first()
+                print(event)
                 if event:
                     dept = event.department if event else None
+                print(dept)
                 dept_account = dept.account if dept else None
+                print(dept_account)
                 cred = CreditTransaction.objects.create(
                     account=dept_account,
                     amount=bill.amount,
