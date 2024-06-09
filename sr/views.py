@@ -293,7 +293,7 @@ def generate_qr(request):
 
 
 @api_view(['GET'])
-@has_sr_perms(['view_srvolunteer'])
+# @has_sr_perms(['view_srvolunteer'])
 def volunteer_stats(request):
     vols = SrVolunteer.objects.prefetch_related('user').all()
     data = []
