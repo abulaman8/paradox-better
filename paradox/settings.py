@@ -225,7 +225,7 @@ DATABASES = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://default:T38DaQzM7uLFYhOZj9XpWCS9DnuVpSZ8@redis-16503.c305.ap-south-1-1.ec2.cloud.redislabs.com:16503"
+        "LOCATION": "rediss://red-csslh6btq21c73a2g7a0:k1vgP65BsUq99ET0bMIXniHv7Abxrh8h@singapore-redis.render.com:6379"
     }
 }
 
